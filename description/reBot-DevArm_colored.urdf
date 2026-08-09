@@ -1,4 +1,4 @@
-<?xml version='1.0' encoding='utf-8'?>
+﻿<?xml version='1.0' encoding='utf-8'?>
 <robot name="reBot-DevArm_colored">
   <material name="gripper_finger_black">
     <color rgba="0.090 0.106 0.102 1" />
@@ -27,28 +27,28 @@
     <visual name="base_link_silver_trim">
       <origin xyz="0 0 0" rpy="0 0 0" />
       <geometry>
-        <mesh filename="package://rebotarm_bringup/description/meshes/colored_base_link_silver_trim.stl" />
+        <mesh filename="meshes/colored_base_link_silver_trim.stl" />
       </geometry>
       <material name="silver_trim" />
     </visual>
     <visual name="base_link_hardware_black">
       <origin xyz="0 0 0" rpy="0 0 0" />
       <geometry>
-        <mesh filename="package://rebotarm_bringup/description/meshes/colored_base_link_hardware_black.stl" />
+        <mesh filename="meshes/colored_base_link_hardware_black.stl" />
       </geometry>
       <material name="hardware_black" />
     </visual>
     <visual name="base_link_matte_black">
       <origin xyz="0 0 0" rpy="0 0 0" />
       <geometry>
-        <mesh filename="package://rebotarm_bringup/description/meshes/colored_base_link_matte_black.stl" />
+        <mesh filename="meshes/colored_base_link_matte_black.stl" />
       </geometry>
       <material name="matte_black" />
     </visual>
     <collision>
       <origin xyz="0 0 0" rpy="0 0 0" />
       <geometry>
-        <mesh filename="package://rebotarm_bringup/description/meshes/base_link.STL" />
+        <mesh filename="meshes/base_link.STL" />
       </geometry>
     </collision>
   </link>
@@ -61,28 +61,28 @@
     <visual name="link1_matte_black">
       <origin xyz="0 0 0" rpy="0 0 0" />
       <geometry>
-        <mesh filename="package://rebotarm_bringup/description/meshes/colored_link1_matte_black.stl" />
+        <mesh filename="meshes/colored_link1_matte_black.stl" />
       </geometry>
       <material name="matte_black" />
     </visual>
     <visual name="link1_hardware_black">
       <origin xyz="0 0 0" rpy="0 0 0" />
       <geometry>
-        <mesh filename="package://rebotarm_bringup/description/meshes/colored_link1_hardware_black.stl" />
+        <mesh filename="meshes/colored_link1_hardware_black.stl" />
       </geometry>
       <material name="hardware_black" />
     </visual>
     <visual name="link1_anodized_grey">
       <origin xyz="0 0 0" rpy="0 0 0" />
       <geometry>
-        <mesh filename="package://rebotarm_bringup/description/meshes/colored_link1_anodized_grey.stl" />
+        <mesh filename="meshes/colored_link1_anodized_grey.stl" />
       </geometry>
       <material name="anodized_grey" />
     </visual>
     <collision>
       <origin xyz="0 0 0" rpy="0 0 0" />
       <geometry>
-        <mesh filename="package://rebotarm_bringup/description/meshes/link1.STL" />
+        <mesh filename="meshes/link1.STL" />
       </geometry>
     </collision>
   </link>
@@ -102,35 +102,35 @@
     <visual name="link2_seeed_yellow">
       <origin xyz="0 0 0" rpy="0 0 0" />
       <geometry>
-        <mesh filename="package://rebotarm_bringup/description/meshes/colored_link2_seeed_yellow.stl" />
+        <mesh filename="meshes/colored_link2_seeed_yellow.stl" />
       </geometry>
       <material name="seeed_yellow" />
     </visual>
     <visual name="link2_matte_black">
       <origin xyz="0 0 0" rpy="0 0 0" />
       <geometry>
-        <mesh filename="package://rebotarm_bringup/description/meshes/colored_link2_matte_black.stl" />
+        <mesh filename="meshes/colored_link2_matte_black.stl" />
       </geometry>
       <material name="matte_black" />
     </visual>
     <visual name="link2_hardware_black">
       <origin xyz="0 0 0" rpy="0 0 0" />
       <geometry>
-        <mesh filename="package://rebotarm_bringup/description/meshes/colored_link2_hardware_black.stl" />
+        <mesh filename="meshes/colored_link2_hardware_black.stl" />
       </geometry>
       <material name="hardware_black" />
     </visual>
     <visual name="link2_anodized_grey">
       <origin xyz="0 0 0" rpy="0 0 0" />
       <geometry>
-        <mesh filename="package://rebotarm_bringup/description/meshes/colored_link2_anodized_grey.stl" />
+        <mesh filename="meshes/colored_link2_anodized_grey.stl" />
       </geometry>
       <material name="anodized_grey" />
     </visual>
     <collision>
       <origin xyz="0 0 0" rpy="0 0 0" />
       <geometry>
-        <mesh filename="package://rebotarm_bringup/description/meshes/link2.STL" />
+        <mesh filename="meshes/link2.STL" />
       </geometry>
     </collision>
   </link>
@@ -150,35 +150,35 @@
     <visual name="link3_seeed_yellow">
       <origin xyz="0 0 0" rpy="0 0 0" />
       <geometry>
-        <mesh filename="package://rebotarm_bringup/description/meshes/colored_link3_seeed_yellow.stl" />
+        <mesh filename="meshes/colored_link3_seeed_yellow.stl" />
       </geometry>
       <material name="seeed_yellow" />
     </visual>
     <visual name="link3_matte_black">
       <origin xyz="0 0 0" rpy="0 0 0" />
       <geometry>
-        <mesh filename="package://rebotarm_bringup/description/meshes/colored_link3_matte_black.stl" />
+        <mesh filename="meshes/colored_link3_matte_black.stl" />
       </geometry>
       <material name="matte_black" />
     </visual>
     <visual name="link3_hardware_black">
       <origin xyz="0 0 0" rpy="0 0 0" />
       <geometry>
-        <mesh filename="package://rebotarm_bringup/description/meshes/colored_link3_hardware_black.stl" />
+        <mesh filename="meshes/colored_link3_hardware_black.stl" />
       </geometry>
       <material name="hardware_black" />
     </visual>
     <visual name="link3_anodized_grey">
       <origin xyz="0 0 0" rpy="0 0 0" />
       <geometry>
-        <mesh filename="package://rebotarm_bringup/description/meshes/colored_link3_anodized_grey.stl" />
+        <mesh filename="meshes/colored_link3_anodized_grey.stl" />
       </geometry>
       <material name="anodized_grey" />
     </visual>
     <collision>
       <origin xyz="0 0 0" rpy="0 0 0" />
       <geometry>
-        <mesh filename="package://rebotarm_bringup/description/meshes/link3.STL" />
+        <mesh filename="meshes/link3.STL" />
       </geometry>
     </collision>
   </link>
@@ -198,35 +198,35 @@
     <visual name="link4_seeed_yellow">
       <origin xyz="0 0 0" rpy="0 0 0" />
       <geometry>
-        <mesh filename="package://rebotarm_bringup/description/meshes/colored_link4_seeed_yellow.stl" />
+        <mesh filename="meshes/colored_link4_seeed_yellow.stl" />
       </geometry>
       <material name="seeed_yellow" />
     </visual>
     <visual name="link4_matte_black">
       <origin xyz="0 0 0" rpy="0 0 0" />
       <geometry>
-        <mesh filename="package://rebotarm_bringup/description/meshes/colored_link4_matte_black.stl" />
+        <mesh filename="meshes/colored_link4_matte_black.stl" />
       </geometry>
       <material name="matte_black" />
     </visual>
     <visual name="link4_hardware_black">
       <origin xyz="0 0 0" rpy="0 0 0" />
       <geometry>
-        <mesh filename="package://rebotarm_bringup/description/meshes/colored_link4_hardware_black.stl" />
+        <mesh filename="meshes/colored_link4_hardware_black.stl" />
       </geometry>
       <material name="hardware_black" />
     </visual>
     <visual name="link4_anodized_grey">
       <origin xyz="0 0 0" rpy="0 0 0" />
       <geometry>
-        <mesh filename="package://rebotarm_bringup/description/meshes/colored_link4_anodized_grey.stl" />
+        <mesh filename="meshes/colored_link4_anodized_grey.stl" />
       </geometry>
       <material name="anodized_grey" />
     </visual>
     <collision>
       <origin xyz="0 0 0" rpy="0 0 0" />
       <geometry>
-        <mesh filename="package://rebotarm_bringup/description/meshes/link4.STL" />
+        <mesh filename="meshes/link4.STL" />
       </geometry>
     </collision>
   </link>
@@ -246,28 +246,28 @@
     <visual name="link5_matte_black">
       <origin xyz="0 0 0" rpy="0 0 0" />
       <geometry>
-        <mesh filename="package://rebotarm_bringup/description/meshes/colored_link5_matte_black.stl" />
+        <mesh filename="meshes/colored_link5_matte_black.stl" />
       </geometry>
       <material name="matte_black" />
     </visual>
     <visual name="link5_hardware_black">
       <origin xyz="0 0 0" rpy="0 0 0" />
       <geometry>
-        <mesh filename="package://rebotarm_bringup/description/meshes/colored_link5_hardware_black.stl" />
+        <mesh filename="meshes/colored_link5_hardware_black.stl" />
       </geometry>
       <material name="hardware_black" />
     </visual>
     <visual name="link5_anodized_grey">
       <origin xyz="0 0 0" rpy="0 0 0" />
       <geometry>
-        <mesh filename="package://rebotarm_bringup/description/meshes/colored_link5_anodized_grey.stl" />
+        <mesh filename="meshes/colored_link5_anodized_grey.stl" />
       </geometry>
       <material name="anodized_grey" />
     </visual>
     <collision>
       <origin xyz="0 0 0" rpy="0 0 0" />
       <geometry>
-        <mesh filename="package://rebotarm_bringup/description/meshes/link5.STL" />
+        <mesh filename="meshes/link5.STL" />
       </geometry>
     </collision>
   </link>
@@ -287,21 +287,21 @@
     <visual name="link6_matte_black">
       <origin xyz="0 0 0" rpy="0 0 0" />
       <geometry>
-        <mesh filename="package://rebotarm_bringup/description/meshes/colored_link6_matte_black.stl" />
+        <mesh filename="meshes/colored_link6_matte_black.stl" />
       </geometry>
       <material name="matte_black" />
     </visual>
     <visual name="link6_hardware_black">
       <origin xyz="0 0 0" rpy="0 0 0" />
       <geometry>
-        <mesh filename="package://rebotarm_bringup/description/meshes/colored_link6_hardware_black.stl" />
+        <mesh filename="meshes/colored_link6_hardware_black.stl" />
       </geometry>
       <material name="hardware_black" />
     </visual>
     <collision>
       <origin xyz="0 0 0" rpy="0 0 0" />
       <geometry>
-        <mesh filename="package://rebotarm_bringup/description/meshes/link6.STL" />
+        <mesh filename="meshes/link6.STL" />
       </geometry>
     </collision>
   </link>
@@ -321,28 +321,28 @@
     <visual name="gripper_base_seeed_yellow">
       <origin xyz="0 0 0" rpy="0 0 0" />
       <geometry>
-        <mesh filename="package://rebotarm_bringup/description/meshes/colored_gripper_base_seeed_yellow.stl" />
+        <mesh filename="meshes/colored_gripper_base_seeed_yellow.stl" />
       </geometry>
       <material name="gripper_seeed_yellow" />
     </visual>
     <visual name="gripper_base_hardware_black">
       <origin xyz="0 0 0" rpy="0 0 0" />
       <geometry>
-        <mesh filename="package://rebotarm_bringup/description/meshes/colored_gripper_base_hardware_black.stl" />
+        <mesh filename="meshes/colored_gripper_base_hardware_black.stl" />
       </geometry>
       <material name="gripper_hardware_black" />
     </visual>
     <visual name="gripper_base_metal">
       <origin xyz="0 0 0" rpy="0 0 0" />
       <geometry>
-        <mesh filename="package://rebotarm_bringup/description/meshes/colored_gripper_base_metal.stl" />
+        <mesh filename="meshes/colored_gripper_base_metal.stl" />
       </geometry>
       <material name="gripper_base_metal" />
     </visual>
     <collision>
       <origin xyz="0 0 0" rpy="0 0 0" />
       <geometry>
-        <mesh filename="package://rebotarm_bringup/description/meshes/gripper_base.stl" />
+        <mesh filename="meshes/gripper_base.stl" />
       </geometry>
     </collision>
   </link>
@@ -356,35 +356,35 @@
     <visual name="finger_left_body">
       <origin xyz="0 0 0" rpy="0 0 0" />
       <geometry>
-        <mesh filename="package://rebotarm_bringup/description/meshes/colored_left_finger_finger_black.stl" />
+        <mesh filename="meshes/colored_left_finger_finger_black.stl" />
       </geometry>
       <material name="gripper_finger_black" />
     </visual>
     <visual name="finger_left_carriage">
       <origin xyz="0 0 0" rpy="0 0 0" />
       <geometry>
-        <mesh filename="package://rebotarm_bringup/description/meshes/colored_left_finger_carriage_grey.stl" />
+        <mesh filename="meshes/colored_left_finger_carriage_grey.stl" />
       </geometry>
       <material name="gripper_carriage_grey" />
     </visual>
     <visual name="finger_left_travel_stop">
       <origin xyz="0 0 0" rpy="0 0 0" />
       <geometry>
-        <mesh filename="package://rebotarm_bringup/description/meshes/colored_left_finger_travel_stop_yellow.stl" />
+        <mesh filename="meshes/colored_left_finger_travel_stop_yellow.stl" />
       </geometry>
       <material name="gripper_seeed_yellow" />
     </visual>
     <visual name="finger_left_crossed_rack">
       <origin xyz="0 0 0" rpy="0 0 0" />
       <geometry>
-        <mesh filename="package://rebotarm_bringup/description/meshes/colored_left_finger_rack_metal.stl" />
+        <mesh filename="meshes/colored_left_finger_rack_metal.stl" />
       </geometry>
       <material name="gripper_rack_metal" />
     </visual>
     <collision>
       <origin xyz="0 0 0" rpy="0 0 0" />
       <geometry>
-        <mesh filename="package://rebotarm_bringup/description/meshes/left_finger.stl" />
+        <mesh filename="meshes/left_finger.stl" />
       </geometry>
     </collision>
   </link>
@@ -399,35 +399,35 @@
     <visual name="finger_right_body">
       <origin xyz="0 0 0" rpy="0 0 0" />
       <geometry>
-        <mesh filename="package://rebotarm_bringup/description/meshes/colored_right_finger_finger_black.stl" />
+        <mesh filename="meshes/colored_right_finger_finger_black.stl" />
       </geometry>
       <material name="gripper_finger_black" />
     </visual>
     <visual name="finger_right_carriage">
       <origin xyz="0 0 0" rpy="0 0 0" />
       <geometry>
-        <mesh filename="package://rebotarm_bringup/description/meshes/colored_right_finger_carriage_grey.stl" />
+        <mesh filename="meshes/colored_right_finger_carriage_grey.stl" />
       </geometry>
       <material name="gripper_carriage_grey" />
     </visual>
     <visual name="finger_right_travel_stop">
       <origin xyz="0 0 0" rpy="0 0 0" />
       <geometry>
-        <mesh filename="package://rebotarm_bringup/description/meshes/colored_right_finger_travel_stop_yellow.stl" />
+        <mesh filename="meshes/colored_right_finger_travel_stop_yellow.stl" />
       </geometry>
       <material name="gripper_seeed_yellow" />
     </visual>
     <visual name="finger_right_crossed_rack">
       <origin xyz="0 0 0" rpy="0 0 0" />
       <geometry>
-        <mesh filename="package://rebotarm_bringup/description/meshes/colored_right_finger_rack_metal.stl" />
+        <mesh filename="meshes/colored_right_finger_rack_metal.stl" />
       </geometry>
       <material name="gripper_rack_metal" />
     </visual>
     <collision>
       <origin xyz="0 0 0" rpy="0 0 0" />
       <geometry>
-        <mesh filename="package://rebotarm_bringup/description/meshes/right_finger.stl" />
+        <mesh filename="meshes/right_finger.stl" />
       </geometry>
     </collision>
   </link>

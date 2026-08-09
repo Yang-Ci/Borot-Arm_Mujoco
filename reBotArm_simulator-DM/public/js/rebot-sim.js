@@ -23,18 +23,21 @@ const t = window.rebotI18n ? window.rebotI18n.t : (k) => k;
   );
   const THREE_TO_ROS_FRAME = ROS_TO_THREE_FRAME.clone().invert();
 
-  // Material groups are encoded as [material index, triangle count].  The
-  // source STL files contain separate CAD solids, but STLLoader presents them
-  // as one mesh.  These ranges preserve those solids so motors, aluminium
-  // plates, accent covers and fasteners can use their real finishes.
-  const REAL_FINISH_GROUPS = {
-    base_link: [[0, 4944], [5, 3094], [0, 34486], [5, 2404], [3, 33044], [0, 432], [3, 932], [5, 2258]],
-    link1: [[3, 356], [1, 2462], [0, 3924]],
-    link2: [[0, 966], [1, 728], [2, 1940], [0, 960], [3, 14638], [0, 73780], [1, 8824]],
-    link3: [[0, 3924], [1, 6046], [0, 1482], [1, 3244], [3, 13240], [0, 32400], [3, 6572], [1, 1228], [0, 2652], [1, 1652], [0, 2640], [2, 2020]],
-    link4: [[0, 1788], [3, 1864], [1, 466], [3, 7456], [0, 32400], [3, 1864], [1, 932], [3, 466], [1, 466], [3, 466], [0, 1508], [2, 1356], [1, 4016], [0, 2136]],
-    link5: [[3, 932], [0, 32400], [3, 5688], [1, 940], [0, 2136], [1, 2658], [3, 428]],
-    link6: [[0, 1904], [3, 2926], [0, 35058]]
+  // Real-robot finishes keyed by the URDF <material name>.  Colours come from
+  // the URDF itself; gloss comes from the same metallic/roughness values the
+  // MJCF (rebotarm_b601_colored.xml) uses, so all three viewers stay in sync.
+  const URDF_FINISH_PARAMS = {
+matte_black: { roughness: 0.48, metalness: 0.48 },
+    hardware_black: { roughness: 0.20, metalness: 0.82 },
+    anodized_grey: { roughness: 0.34, metalness: 0.72 },
+    seeed_yellow: { roughness: 0.34, metalness: 0.18 },
+    silver_trim: { roughness: 0.18, metalness: 0.88 },
+    gripper_finger_black: { roughness: 0.48, metalness: 0.48 },
+    gripper_carriage_grey: { roughness: 0.38, metalness: 0.62 },
+    gripper_rack_metal: { roughness: 0.18, metalness: 0.88 },
+    gripper_seeed_yellow: { roughness: 0.34, metalness: 0.18 },
+    gripper_hardware_black: { roughness: 0.20, metalness: 0.82 },
+    gripper_base_metal: { roughness: 0.18, metalness: 0.88 }
   };
   const GRIPPER_BASE_FINISH_GROUPS = [[2, 2338], [2, 2212], [2, 2184], [5, 2628], [3, 2484]];
   const GRIPPER_FINGER_FACE_RANGES = {
@@ -632,102 +635,7 @@ const t = window.rebotI18n ? window.rebotI18n.t : (k) => k;
     ];
   }
 
-  function applyRealFinishGroups(mesh, linkName, materials) {
-    const groups = REAL_FINISH_GROUPS[linkName];
-    const position = mesh.geometry && mesh.geometry.getAttribute('position');
-    if (!groups || !position) {
-      mesh.material = materials[1];
-      return;
-    }
-
-    const expectedFaces = groups.reduce((total, group) => total + group[1], 0);
-    const actualFaces = position.count / 3;
-    if (expectedFaces !== actualFaces) {
-      console.warn(`Real finish map skipped for ${linkName}: expected ${expectedFaces} faces, got ${actualFaces}`);
-      mesh.material = materials[1];
-      return;
-    }
-
-    const faceMaterials = new Uint8Array(actualFaces);
-    let faceOffset = 0;
-    groups.forEach(([materialIndex, faceCount]) => {
-      faceMaterials.fill(materialIndex, faceOffset, faceOffset + faceCount);
-      faceOffset += faceCount;
-    });
-
-    // The raised seeed studio badge is fused to link3's black cover in the
-    // source STL. Select only that raised badge on both sides of the arm.
-    if (linkName === 'link3') {
-      for (let faceIndex = 0; faceIndex < actualFaces; faceIndex += 1) {
-        const vertexOffset = faceIndex * 3;
-        const x = (
-          position.getX(vertexOffset)
-          + position.getX(vertexOffset + 1)
-          + position.getX(vertexOffset + 2)
-        ) / 3;
-        const y = (
-          position.getY(vertexOffset)
-          + position.getY(vertexOffset + 1)
-          + position.getY(vertexOffset + 2)
-        ) / 3;
-        const z = (
-          position.getZ(vertexOffset)
-          + position.getZ(vertexOffset + 1)
-          + position.getZ(vertexOffset + 2)
-        ) / 3;
-        const insideBadgePanel = (
-          (faceIndex >= 68136 && faceIndex < 70788)
-          || (faceIndex >= 72440 && faceIndex < 75080)
-        );
-        const insideBadge = (
-          insideBadgePanel
-          && x > 0.128
-          && x < 0.1885
-          && y > -0.0675
-          && y < -0.05
-        );
-        const onOuterFace = z > -0.01 || z < -0.053;
-        if (insideBadge && onOuterFace) faceMaterials[faceIndex] = 2;
-
-        const ax = position.getX(vertexOffset + 1) - position.getX(vertexOffset);
-        const ay = position.getY(vertexOffset + 1) - position.getY(vertexOffset);
-        const az = position.getZ(vertexOffset + 1) - position.getZ(vertexOffset);
-        const bx = position.getX(vertexOffset + 2) - position.getX(vertexOffset);
-        const by = position.getY(vertexOffset + 2) - position.getY(vertexOffset);
-        const bz = position.getZ(vertexOffset + 2) - position.getZ(vertexOffset);
-        const crossX = ay * bz - az * by;
-        const crossY = az * bx - ax * bz;
-        const crossZ = ax * by - ay * bx;
-        const faceArea = Math.sqrt(crossX * crossX + crossY * crossY + crossZ * crossZ) / 2;
-        const insideText = (
-          x > 0.128
-          && x < 0.1885
-          && y > -0.067
-          && y < -0.051
-          && faceArea < 0.00001
-        );
-        const frontTextFace = faceIndex >= 68136 && faceIndex < 70788 && Math.abs(z + 0.004025) < 0.0001;
-        const backTextFace = faceIndex >= 72440 && faceIndex < 75080 && Math.abs(z + 0.05923) < 0.0001;
-        if (insideText && (frontTextFace || backTextFace)) faceMaterials[faceIndex] = 0;
-      }
-    }
-
-    mesh.geometry.clearGroups();
-    let groupStart = 0;
-    for (let faceIndex = 1; faceIndex <= actualFaces; faceIndex += 1) {
-      if (faceIndex < actualFaces && faceMaterials[faceIndex] === faceMaterials[groupStart]) continue;
-      mesh.geometry.addGroup(
-        groupStart * 3,
-        (faceIndex - groupStart) * 3,
-        faceMaterials[groupStart]
-      );
-      groupStart = faceIndex;
-    }
-    mesh.material = materials;
-  }
-
   function styleRobot(root, ghost) {
-    const realMaterials = ghost ? null : createRealFinishMaterials();
     root.traverse((child) => {
       if (!child.isMesh) return;
       child.castShadow = !ghost;
@@ -745,19 +653,32 @@ const t = window.rebotI18n ? window.rebotI18n.t : (k) => k;
         return;
       }
 
-      const linkName = getUrdfLinkName(child);
-      applyRealFinishGroups(child, linkName, realMaterials);
+      // Real robot: colours come from the URDF <material> definitions; gloss
+      // comes from URDF_FINISH_PARAMS keyed by the same material name, so the
+      // web view matches the RViz and MuJoCo renderings.
+      const sourceMaterial = Array.isArray(child.material) ? child.material[0] : child.material;
+      const finishParams = (sourceMaterial && sourceMaterial.name && URDF_FINISH_PARAMS[sourceMaterial.name])
+        || (sourceMaterial && URDF_FINISH_PARAMS[linkFinishName(child)]);
+      if (finishParams) {
+        child.material = new THREE.MeshStandardMaterial({
+          color: sourceMaterial.color || 0xcccccc,
+          roughness: finishParams.roughness,
+          metalness: finishParams.metalness,
+          side: THREE.DoubleSide
+        });
+        return;
+      }
+      // Material not listed above: keep whatever the URDF loader produced.
     });
   }
-  function getUrdfLinkName(object) {
+  function linkFinishName(object) {
     let node = object;
     while (node) {
-      if (node.isURDFLink && node.urdfName) return node.urdfName;
+      if (node.material && !Array.isArray(node.material) && node.material.name) return node.material.name;
       node = node.parent;
     }
     return '';
   }
-
   function createGhostRobot() {
     if (!robot) return;
     ghostRobot = robot.clone(true);
