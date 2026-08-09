@@ -282,7 +282,7 @@ standalone 版本必须同时复制匹配版本的 URDF、主体 `meshes/` 和 `
 网页不依赖 roslibjs，而是在 `ReBotRosClient` 中直接使用浏览器 `WebSocket` 实现 rosbridge JSON 消息。默认连接地址为：
 
 ```text
-ws://192.168.60.130:9090
+ws://<主机实际 IP>:9090
 ```
 
 主要链路为：

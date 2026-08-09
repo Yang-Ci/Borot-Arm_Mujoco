@@ -52,6 +52,19 @@ port_in_use() {
   return 1
 }
 
+detect_host_ip() {
+  local ip
+  if command -v hostname >/dev/null 2>&1 && hostname -I >/dev/null 2>&1; then
+    ip="$(hostname -I 2>/dev/null | awk '{print $1}')"
+    [[ -n "${ip}" ]] && { printf '%s' "${ip}"; return 0; }
+  fi
+  if command -v ip >/dev/null 2>&1; then
+    ip="$(ip -4 route get 1 2>/dev/null | awk '{for (i=1; i<=NF; i++) if ($i == "src") {print $(i+1); exit}}')"
+    [[ -n "${ip}" ]] && { printf '%s' "${ip}"; return 0; }
+  fi
+  printf '%s' "${HOST_IP:-}"
+}
+
 stop_existing_rebot_stack() {
   local pattern
   # Only stop simulation-owned processes.  rosbridge may belong to
@@ -219,7 +232,8 @@ else
 fi
 
 log "startup complete."
-log "web URL: ws://192.168.60.130:${ROSBRIDGE_PORT}"
+HOST_IP="${HOST_IP:-$(detect_host_ip)}"
+log "web URL: ws://${HOST_IP}:${ROSBRIDGE_PORT}"
 log "MuJoCo grasp mode: ${MUJOCO_GRASP_MODE}"
 log "IK tolerance: ${SIM_IK_TOLERANCE} m, orientation tolerance: ${SIM_IK_ORIENTATION_TOLERANCE}"
 log "RGB camera topic: /rebotarm/mujoco/overhead_rgb/image_raw"

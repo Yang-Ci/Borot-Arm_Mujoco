@@ -86,8 +86,10 @@ when you no longer need it.
 Default WebSocket target:
 
 ```text
-ws://192.168.60.130:9090
+ws://<Ubuntu 主机实际 IP>:9090
 ```
+
+>`start_rebot_mujoco_all.sh` 启动时打印的 `web URL` 即为当前主机实际 IP。
 
 On Ubuntu 24.04 + ROS2 Jazzy, start the ROS side:
 
