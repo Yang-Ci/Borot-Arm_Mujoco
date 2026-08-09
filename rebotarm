@@ -76,7 +76,15 @@ run_web() {
   trap 'stop_children' EXIT INT TERM
   local rosbridge_port="${ROSBRIDGE_PORT:-9090}"
   if ss -ltn "sport = :${rosbridge_port}" 2>/dev/null | grep -q LISTEN; then
-    printf 'ROS WebSocket: ws://localhost:%s (reuse existing listener)\n' "${rosbridge_port}"
+    local pid
+    pid="$(ss -ltnp "sport = :${rosbridge_port}" 2>/dev/null | grep -oP 'pid=\K[0-9]+' | head -1)"
+    if [[ -n "${pid}" ]] && ps -p "${pid}" -o args= 2>/dev/null | grep -q 'rosbridge_websocket'; then
+      printf 'ROS WebSocket: ws://localhost:%s (reuse existing rosbridge, pid=%s)\n' "${rosbridge_port}" "${pid}"
+    else
+      printf 'ERROR: port %s is occupied by another process (pid=%s). Stop it or set ROSBRIDGE_PORT to continue.\n' \
+        "${rosbridge_port}" "${pid:-unknown}" >&2
+      exit 1
+    fi
   else
     ros2 launch rosbridge_server rosbridge_websocket_launch.xml port:="${rosbridge_port}" address:="${ROSBRIDGE_ADDRESS:-0.0.0.0}" &
     PIDS+=("$!"); printf '%s %s\n' "$!" rosbridge >>"${PID_FILE}"
