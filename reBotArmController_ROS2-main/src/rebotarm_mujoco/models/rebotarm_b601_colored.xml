@@ -51,6 +51,14 @@
     <mesh name="finger_right_travel_stop_mesh" file="colored_right_finger_travel_stop_yellow.stl"/>
     <mesh name="finger_right_crossed_rack_mesh" file="colored_right_finger_rack_metal.stl"/>
 
+    <mesh name="gripper_base_collision_mesh" file="gripper_base.stl"/>
+    <mesh name="finger_left_body_collision_mesh" file="colored_left_finger_finger_black.stl"/>
+    <mesh name="finger_left_carriage_collision_mesh" file="colored_left_finger_carriage_grey.stl"/>
+    <mesh name="finger_left_travel_stop_collision_mesh" file="colored_left_finger_travel_stop_yellow.stl"/>
+    <mesh name="finger_right_body_collision_mesh" file="colored_right_finger_finger_black.stl"/>
+    <mesh name="finger_right_carriage_collision_mesh" file="colored_right_finger_carriage_grey.stl"/>
+    <mesh name="finger_right_travel_stop_collision_mesh" file="colored_right_finger_travel_stop_yellow.stl"/>
+
     <material name="anodized_grey_mat" rgba="0.62 0.63 0.61 1" specular="0.28" shininess="0.24" metallic="0.72" roughness="0.34"/>
     <material name="hardware_black_mat" rgba="0.055 0.065 0.060 1" specular="0.50" shininess="0.72" metallic="0.82" roughness="0.20"/>
     <material name="matte_black_mat" rgba="0.14 0.16 0.15 1" specular="0.42" shininess="0.48" metallic="0.48" roughness="0.48"/>
@@ -163,7 +171,7 @@
                     <geom name="gripper_base_hardware_black_visual" type="mesh" mesh="gripper_base_hardware_black_mesh" material="gripper_hardware_black_mat"/>
                     <geom name="gripper_base_metal_visual" type="mesh" mesh="gripper_base_metal_mesh" material="gripper_base_metal_mat"/>
                     <geom name="gripper_base_seeed_yellow_visual" type="mesh" mesh="gripper_base_seeed_yellow_mesh" material="gripper_seeed_yellow_mat"/>
-                    <geom name="gripper_palm_collision" type="box" pos="-0.090 0 0" size="0.018 0.090 0.034" rgba="0.18 0.22 0.21 0.12" contype="1" conaffinity="1" condim="6" mass="0.02" friction="1.2 0.10 0.02" solref="0.003 1" solimp="0.98 0.995 0.0005"/>
+                    <geom name="gripper_palm_collision" type="mesh" mesh="gripper_base_collision_mesh" rgba="0.18 0.22 0.21 0.12" contype="1" conaffinity="1" condim="6" mass="0.02" friction="1.2 0.10 0.02" solref="0.003 1" solimp="0.98 0.995 0.0005"/>
                     <site name="tcp" pos="-0.105 0 0" size="0.008" rgba="1 0.34 0.16 1"/>
 
                     <body name="finger_left_link" pos="0 0 0">
@@ -173,8 +181,9 @@
                       <geom name="finger_left_carriage_visual" type="mesh" mesh="finger_left_carriage_mesh" material="gripper_carriage_grey_mat"/>
                       <geom name="finger_left_travel_stop_visual" type="mesh" mesh="finger_left_travel_stop_mesh" material="gripper_seeed_yellow_mat"/>
                       <geom name="finger_left_crossed_rack_visual" type="mesh" mesh="finger_left_crossed_rack_mesh" material="gripper_rack_metal_mat"/>
-                      <geom name="finger_left_collision" type="box" pos="-0.105 0.014 0" size="0.045 0.007 0.020" rgba="0.18 0.22 0.21 0.20" contype="1" conaffinity="1" condim="6" mass="0.01" friction="6.0 0.25 0.04" solref="0.003 1" solimp="0.98 0.995 0.0005"/>
-                      <geom name="finger_left_rear_collision" type="box" pos="-0.030 0.014 0" size="0.030 0.007 0.020" rgba="0.18 0.22 0.21 0.12" contype="1" conaffinity="1" condim="6" mass="0.006" friction="6.0 0.25 0.04" solref="0.003 1" solimp="0.98 0.995 0.0005"/>
+                      <geom name="finger_left_collision" type="mesh" mesh="finger_left_body_collision_mesh" rgba="0.18 0.22 0.21 0.20" contype="1" conaffinity="1" condim="6" mass="0.01" friction="6.0 0.25 0.04" solref="0.003 1" solimp="0.98 0.995 0.0005"/>
+                      <geom name="finger_left_carriage_collision" type="mesh" mesh="finger_left_carriage_collision_mesh" rgba="0.18 0.22 0.21 0.12" contype="1" conaffinity="1" condim="6" mass="0.01" friction="6.0 0.25 0.04" solref="0.003 1" solimp="0.98 0.995 0.0005"/>
+                      <geom name="finger_left_travel_stop_collision" type="mesh" mesh="finger_left_travel_stop_collision_mesh" rgba="0.18 0.22 0.21 0.12" contype="1" conaffinity="1" condim="6" mass="0.01" friction="6.0 0.25 0.04" solref="0.003 1" solimp="0.98 0.995 0.0005"/>
                     </body>
 
                     <body name="finger_right_link" pos="0 0 0">
@@ -184,8 +193,9 @@
                       <geom name="finger_right_carriage_visual" type="mesh" mesh="finger_right_carriage_mesh" material="gripper_carriage_grey_mat"/>
                       <geom name="finger_right_travel_stop_visual" type="mesh" mesh="finger_right_travel_stop_mesh" material="gripper_seeed_yellow_mat"/>
                       <geom name="finger_right_crossed_rack_visual" type="mesh" mesh="finger_right_crossed_rack_mesh" material="gripper_rack_metal_mat"/>
-                      <geom name="finger_right_collision" type="box" pos="-0.105 -0.014 0" size="0.045 0.007 0.020" rgba="0.18 0.22 0.21 0.20" contype="1" conaffinity="1" condim="6" mass="0.01" friction="6.0 0.25 0.04" solref="0.003 1" solimp="0.98 0.995 0.0005"/>
-                      <geom name="finger_right_rear_collision" type="box" pos="-0.030 -0.014 0" size="0.030 0.007 0.020" rgba="0.18 0.22 0.21 0.12" contype="1" conaffinity="1" condim="6" mass="0.006" friction="6.0 0.25 0.04" solref="0.003 1" solimp="0.98 0.995 0.0005"/>
+<geom name="finger_right_collision" type="mesh" mesh="finger_right_body_collision_mesh" rgba="0.18 0.22 0.21 0.20" contype="1" conaffinity="1" condim="6" mass="0.01" friction="6.0 0.25 0.04" solref="0.003 1" solimp="0.98 0.995 0.0005"/>
+                      <geom name="finger_right_carriage_collision" type="mesh" mesh="finger_right_carriage_collision_mesh" rgba="0.18 0.22 0.21 0.12" contype="1" conaffinity="1" condim="6" mass="0.01" friction="6.0 0.25 0.04" solref="0.003 1" solimp="0.98 0.995 0.0005"/>
+                      <geom name="finger_right_travel_stop_collision" type="mesh" mesh="finger_right_travel_stop_collision_mesh" rgba="0.18 0.22 0.21 0.12" contype="1" conaffinity="1" condim="6" mass="0.01" friction="6.0 0.25 0.04" solref="0.003 1" solimp="0.98 0.995 0.0005"/>
                     </body>
                   </body>
                 </body>
