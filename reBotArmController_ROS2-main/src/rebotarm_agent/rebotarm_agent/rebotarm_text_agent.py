@@ -713,199 +713,506 @@ _MCP_DASHBOARD_HTML = r"""<!DOCTYPE html>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
 <title>reBotArm MCP Dashboard</title>
 <style>
-:root{--bg:#111211;--surface:#191b1a;--surface-2:#202321;--line:rgba(255,255,255,.12);--text:#f4f1ea;--muted:#a7ada7;--teal:#33d6b0;--amber:#f2a541;--red:#ef5a4d;--green:#77c96b;--blue:#5fa8ff;--purple:#a78bfa;--pink:#e879f9}
-*{box-sizing:border-box}
-body{margin:0;min-height:100vh;background:var(--bg);color:var(--text);font-family:Inter,"Segoe UI","Microsoft YaHei",Arial,sans-serif;display:flex;flex-direction:column}
-.header{display:flex;align-items:center;justify-content:space-between;padding:16px 24px;border-bottom:1px solid var(--line);background:var(--surface)}
-.header h1{margin:0;font-size:20px}
-.header .status{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted)}
-.dot{width:8px;height:8px;border-radius:50%;background:var(--red);transition:.3s}
-.dot.online{background:var(--green)}
-.main{flex:1;display:grid;grid-template-columns:1fr 380px;gap:0;overflow:hidden}
-.left{padding:20px;overflow-y:auto}
-.right{border-left:1px solid var(--line);background:var(--surface);display:flex;flex-direction:column;overflow:hidden}
-.cat-section{margin-bottom:24px}
-.cat-title{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:700;margin-bottom:12px;text-transform:uppercase;letter-spacing:.5px}
+:root{
+  --bg:#111211;--surface:#191b1a;--surface-2:#202321;--line:rgba(255,255,255,.12);
+  --text:#f4f1ea;--muted:#a7ada7;--teal:#33d6b0;--amber:#f2a541;--red:#ef5a4d;
+  --green:#77c96b;--blue:#5fa8ff;--purple:#a78bfa;--pink:#e879f9;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{height:100vh;background:var(--bg);color:var(--text);font-family:Inter,"Segoe UI","Microsoft YaHei",Arial,sans-serif;display:flex;flex-direction:column;overflow:hidden}
+
+/* Top bar */
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:12px 20px;border-bottom:1px solid var(--line);background:rgba(17,18,17,.78);backdrop-filter:blur(14px);z-index:10}
+.brand{display:flex;align-items:center;gap:10px}
+.brand-dot{width:10px;height:10px;border-radius:3px;background:var(--teal);box-shadow:0 0 12px rgba(51,214,176,.6)}
+.brand h1{font-size:18px;font-weight:700;letter-spacing:0}
+.topbar-actions{display:flex;align-items:center;gap:12px}
+.lang-btn{background:rgba(255,255,255,.06);border:1px solid var(--line);color:var(--text);border-radius:6px;padding:5px 12px;font-size:12px;font-weight:600;cursor:pointer;transition:.2s}
+.lang-btn:hover{border-color:var(--teal);color:var(--teal)}
+.status-pill{display:inline-flex;align-items:center;gap:6px;padding:5px 12px;border-radius:999px;background:rgba(255,255,255,.06);font-size:12px;color:var(--muted);white-space:nowrap}
+.status-dot{width:8px;height:8px;border-radius:999px;background:var(--red);box-shadow:0 0 10px rgba(239,90,77,.5);transition:.3s}
+.status-pill.online .status-dot{background:var(--green);box-shadow:0 0 12px rgba(119,201,107,.6)}
+
+/* Main layout */
+.main{flex:1;min-height:0;display:grid;grid-template-columns:1fr 360px;overflow:hidden}
+
+/* Tools panel (left) */
+.tools-panel{display:flex;flex-direction:column;overflow:hidden;min-height:0}
+.panel-header{padding:14px 20px;border-bottom:1px solid var(--line);background:var(--surface)}
+.search-row{display:flex;gap:10px;align-items:center}
+.search-input{flex:1;background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:7px 12px;color:var(--text);font-size:13px;min-width:0}
+.search-input:focus{outline:none;border-color:var(--teal)}
+.btn-register{background:var(--teal);color:#111211;border:none;border-radius:6px;padding:7px 14px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;transition:.2s}
+.btn-register:hover{opacity:.85}
+.tools-container{flex:1;overflow-y:auto;padding:18px 20px}
+.loading{display:flex;align-items:center;justify-content:center;height:100%;color:var(--muted);font-size:14px}
+
+/* Category sections */
+.cat-section{margin-bottom:22px}
+.cat-title{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700;margin-bottom:10px;text-transform:uppercase;letter-spacing:.5px;color:var(--text)}
 .cat-badge{width:10px;height:10px;border-radius:3px}
-.tools-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px}
+.cat-count{color:var(--muted);font-weight:400;font-size:11px;margin-left:auto}
+.tools-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:10px}
+
+/* Tool cards */
 .tool-card{background:var(--surface-2);border:1px solid var(--line);border-radius:8px;padding:14px;transition:.2s}
-.tool-card:hover{border-color:rgba(255,255,255,.2)}
-.tool-name{font-size:14px;font-weight:600;margin-bottom:4px}
-.tool-desc{font-size:12px;color:var(--muted);margin-bottom:10px;line-height:1.4}
-.tool-params{display:flex;flex-direction:column;gap:6px;margin-bottom:10px}
+.tool-card:hover{border-color:rgba(255,255,255,.22)}
+.tool-card.custom{border-color:rgba(167,139,250,.3)}
+.tool-head{display:flex;align-items:center;gap:6px;margin-bottom:6px;flex-wrap:wrap}
+.tool-name{font-size:13px;font-weight:600;font-family:"Cascadia Mono",Consolas,monospace}
+.tag{display:inline-block;font-size:10px;padding:1px 6px;border-radius:3px;font-weight:600}
+.tag.motion{background:rgba(242,165,65,.15);color:var(--amber)}
+.tag.custom{background:rgba(167,139,250,.15);color:var(--purple)}
+.tool-desc{font-size:12px;color:var(--muted);line-height:1.4;margin-bottom:10px}
+.tool-params{display:flex;flex-direction:column;gap:5px;margin-bottom:10px}
 .param-row{display:flex;align-items:center;gap:8px}
-.param-row label{font-size:11px;color:var(--muted);min-width:90px;font-family:monospace}
-.param-row input{flex:1;background:var(--bg);border:1px solid var(--line);border-radius:4px;padding:5px 8px;color:var(--text);font-size:12px;min-width:0}
+.param-row label{font-size:11px;color:var(--muted);min-width:80px;font-family:"Cascadia Mono",Consolas,monospace}
+.param-row input{flex:1;background:var(--bg);border:1px solid var(--line);border-radius:4px;padding:4px 8px;color:var(--text);font-size:12px;min-width:0}
 .param-row input:focus{outline:none;border-color:var(--teal)}
-.btn-call{background:var(--teal);color:#111211;border:none;border-radius:4px;padding:6px 14px;font-size:12px;font-weight:600;cursor:pointer;transition:.2s}
+.no-params{font-size:11px;color:var(--muted);font-style:italic;margin-bottom:10px}
+.btn-call{background:var(--teal);color:#111211;border:none;border-radius:4px;padding:5px 14px;font-size:12px;font-weight:600;cursor:pointer;transition:.2s}
 .btn-call:hover{opacity:.85}
 .btn-call:disabled{opacity:.4;cursor:not-allowed}
-.motion-tag{display:inline-block;font-size:10px;background:rgba(242,165,65,.15);color:var(--amber);padding:1px 6px;border-radius:3px;margin-left:6px}
-.chat-section{flex:1;display:flex;flex-direction:column;padding:16px;overflow:hidden}
-.chat-log{flex:1;overflow-y:auto;margin-bottom:12px;font-size:13px;line-height:1.5}
-.chat-log .msg{margin-bottom:8px;padding:8px 10px;border-radius:6px}
+.btn-del{background:rgba(239,90,77,.12);color:var(--red);border:1px solid rgba(239,90,77,.25);border-radius:4px;padding:5px 10px;font-size:11px;cursor:pointer;margin-left:6px;transition:.2s}
+.btn-del:hover{background:rgba(239,90,77,.2)}
+
+/* Chat panel (right) */
+.chat-panel{border-left:1px solid var(--line);background:rgba(21,23,22,.6);backdrop-filter:blur(10px);display:flex;flex-direction:column;overflow:hidden;min-height:0}
+.chat-header{padding:14px 16px;border-bottom:1px solid var(--line);font-size:13px;font-weight:700;color:var(--teal)}
+.chat-log{flex:1;overflow-y:auto;padding:12px 16px;font-size:13px;line-height:1.5}
+.chat-log .msg{margin-bottom:8px;padding:8px 10px;border-radius:6px;word-break:break-word}
 .chat-log .msg.user{background:var(--surface-2)}
 .chat-log .msg.assistant{background:rgba(51,214,176,.08);border-left:2px solid var(--teal)}
-.chat-log .msg.tool{background:rgba(95,168,255,.08);border-left:2px solid var(--blue);font-family:monospace;font-size:11px}
+.chat-log .msg.tool{background:rgba(95,168,255,.08);border-left:2px solid var(--blue);font-family:"Cascadia Mono",Consolas,monospace;font-size:11px}
 .chat-log .msg.error{background:rgba(239,90,77,.08);border-left:2px solid var(--red)}
-.chat-input-row{display:flex;gap:8px}
-.chat-input-row input{flex:1;background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:8px 12px;color:var(--text);font-size:13px;min-width:0}
+.chat-log .msg.info{background:rgba(242,165,65,.08);border-left:2px solid var(--amber);font-size:12px}
+.chat-input-row{display:flex;gap:8px;padding:12px 16px;border-top:1px solid var(--line)}
+.chat-input-row input{flex:1;background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:7px 12px;color:var(--text);font-size:13px;min-width:0}
 .chat-input-row input:focus{outline:none;border-color:var(--teal)}
-.chat-input-row button{background:var(--teal);color:#111211;border:none;border-radius:6px;padding:8px 16px;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap}
+.chat-input-row button{background:var(--teal);color:#111211;border:none;border-radius:6px;padding:7px 16px;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap}
 .chat-input-row button:disabled{opacity:.4;cursor:not-allowed}
-.loading{display:flex;align-items:center;justify-content:center;height:100%;color:var(--muted);font-size:14px}
+
+/* Modal */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);backdrop-filter:blur(4px);z-index:100;align-items:center;justify-content:center}
+.modal-overlay.active{display:flex}
+.modal{background:var(--surface);border:1px solid var(--line);border-radius:8px;width:min(520px,90vw);max-height:88vh;overflow-y:auto;box-shadow:0 24px 80px rgba(0,0,0,.5)}
+.modal-header{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--line)}
+.modal-header h2{font-size:16px;font-weight:700}
+.modal-close{background:none;border:none;color:var(--muted);font-size:22px;cursor:pointer;line-height:1;padding:0 4px}
+.modal-close:hover{color:var(--text)}
+.modal-body{padding:16px 20px;display:flex;flex-direction:column;gap:14px}
+.form-row{display:flex;flex-direction:column;gap:5px}
+.form-row label{font-size:12px;font-weight:600;color:var(--text)}
+.form-row input,.form-row textarea{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:8px 10px;color:var(--text);font-size:13px;font-family:inherit}
+.form-row textarea{font-family:"Cascadia Mono",Consolas,monospace;font-size:12px;resize:vertical}
+.form-row input:focus,.form-row textarea:focus{outline:none;border-color:var(--teal)}
+.form-hint{font-size:11px;color:var(--muted)}
+.modal-footer{display:flex;justify-content:flex-end;gap:10px;padding:14px 20px;border-top:1px solid var(--line)}
+.btn-secondary{background:rgba(255,255,255,.06);color:var(--text);border:1px solid var(--line);border-radius:6px;padding:8px 16px;font-size:13px;cursor:pointer}
+.btn-secondary:hover{border-color:rgba(255,255,255,.2)}
+.btn-primary{background:var(--teal);color:#111211;border:none;border-radius:6px;padding:8px 16px;font-size:13px;font-weight:600;cursor:pointer}
+.btn-primary:hover{opacity:.85}
+.btn-primary:disabled{opacity:.4;cursor:not-allowed}
+
+/* Scrollbar */
+::-webkit-scrollbar{width:6px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:rgba(255,255,255,.12);border-radius:3px}
+::-webkit-scrollbar-thumb:hover{background:rgba(255,255,255,.2)}
+
+@media(max-width:768px){.main{grid-template-columns:1fr;grid-template-rows:1fr 240px}.chat-panel{border-left:none;border-top:1px solid var(--line)}}
 </style>
 </head>
 <body>
-<div class="header">
-  <h1>reBotArm MCP Dashboard</h1>
-  <div class="status"><span class="dot" id="dot"></span><span id="status-text">未连接</span></div>
-</div>
-<div class="main">
-  <div class="left" id="tools-container">
-    <div class="loading">正在加载工具列表...</div>
+
+<div class="topbar">
+  <div class="brand">
+    <span class="brand-dot"></span>
+    <h1 data-i18n="title">reBotArm MCP Dashboard</h1>
   </div>
-  <div class="right">
-    <div class="chat-section">
-      <div style="font-size:14px;font-weight:700;margin-bottom:12px;color:var(--teal)">自然语言控制</div>
-      <div class="chat-log" id="chat-log"></div>
-      <div class="chat-input-row">
-        <input type="text" id="chat-input" placeholder="输入指令，如：回到零位、打开夹爪、抓红色方块" disabled/>
-        <button id="chat-btn" disabled>发送</button>
-      </div>
+  <div class="topbar-actions">
+    <button class="lang-btn" id="lang-toggle">EN</button>
+    <div class="status-pill" id="status-pill">
+      <span class="status-dot"></span>
+      <span id="status-text" data-i18n="status.connecting">Connecting</span>
     </div>
   </div>
 </div>
-<script>
-const MOTION_TOOLS = ["safe_home","gravity_compensation_start","set_gripper_opening_mm","move_to_pose","move_joints","pick_color","record_replay"];
 
+<div class="main">
+  <section class="tools-panel">
+    <div class="panel-header">
+      <div class="search-row">
+        <input class="search-input" type="text" id="search" data-i18n-ph="search.ph" placeholder="Search tools..."/>
+        <button class="btn-register" id="btn-register" data-i18n="btn.register">Register Tool</button>
+      </div>
+    </div>
+    <div class="tools-container" id="tools-container">
+      <div class="loading" data-i18n="loading">Loading tools...</div>
+    </div>
+  </section>
+
+  <aside class="chat-panel">
+    <div class="chat-header" data-i18n="chat.title">Natural Language Control</div>
+    <div class="chat-log" id="chat-log"></div>
+    <div class="chat-input-row">
+      <input type="text" id="chat-input" data-i18n-ph="chat.placeholder" placeholder="Enter a command..." disabled/>
+      <button id="chat-btn" disabled data-i18n="chat.send">Send</button>
+    </div>
+  </aside>
+</div>
+
+<div class="modal-overlay" id="register-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 data-i18n="modal.title">Register Custom MCP Tool</h2>
+      <button class="modal-close" id="modal-close">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row">
+        <label data-i18n="modal.name">Tool Name</label>
+        <input type="text" id="reg-name" placeholder="my_custom_tool"/>
+        <span class="form-hint" data-i18n="modal.nameHint">Lowercase, underscores, no spaces</span>
+      </div>
+      <div class="form-row">
+        <label data-i18n="modal.desc">Description</label>
+        <textarea id="reg-desc" rows="2" data-i18n-ph="modal.descPh" placeholder="What does this tool do?"></textarea>
+      </div>
+      <div class="form-row">
+        <label data-i18n="modal.category">Category</label>
+        <input type="text" id="reg-category" placeholder="Custom" data-i18n-ph="modal.catPh"/>
+      </div>
+      <div class="form-row">
+        <label data-i18n="modal.webhook">Webhook URL</label>
+        <input type="text" id="reg-webhook" placeholder="http://localhost:3000/my-tool"/>
+        <span class="form-hint" data-i18n="modal.webhookHint">Tool arguments will be POSTed here as JSON</span>
+      </div>
+      <div class="form-row">
+        <label data-i18n="modal.schema">Parameter Schema (JSON)</label>
+        <textarea id="reg-params" rows="6" placeholder='{"type":"object","properties":{"value":{"type":"number","description":"..."}},"required":["value"]}'></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" id="modal-cancel" data-i18n="modal.cancel">Cancel</button>
+      <button class="btn-primary" id="modal-submit" data-i18n="modal.submit">Register</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ===== i18n ===== */
+const LANG_KEY='rebotarm.mcp.lang';
+const DICT={
+  'title':{zh:'reBotArm MCP 控制台',en:'reBotArm MCP Dashboard'},
+  'status.connecting':{zh:'连接中',en:'Connecting'},
+  'status.connected':{zh:'已连接',en:'Connected'},
+  'status.failed':{zh:'连接失败',en:'Failed'},
+  'search.ph':{zh:'搜索工具...',en:'Search tools...'},
+  'btn.register':{zh:'注册新工具',en:'Register Tool'},
+  'loading':{zh:'正在加载工具列表...',en:'Loading tools...'},
+  'loadFail':{zh:'加载失败',en:'Load failed'},
+  'retry':{zh:'重试',en:'Retry'},
+  'call':{zh:'调用',en:'Call'},
+  'running':{zh:'执行中...',en:'Running...'},
+  'motion':{zh:'运动',en:'Motion'},
+  'custom':{zh:'自定义',en:'Custom'},
+  'noParams':{zh:'无参数',en:'No parameters'},
+  'tools':{zh:'个工具',en:'tools'},
+  'chat.title':{zh:'自然语言控制',en:'Natural Language Control'},
+  'chat.placeholder':{zh:'输入指令，如：回到零位、打开夹爪、抓红色方块',en:'Enter a command, e.g. go home, open gripper, pick red'},
+  'chat.send':{zh:'发送',en:'Send'},
+  'chat.waiting':{zh:'等待...',en:'Waiting...'},
+  'callTool':{zh:'调用',en:'Call'},
+  'result':{zh:'结果',en:'Result'},
+  'callFail':{zh:'调用失败',en:'Call failed'},
+  'delConfirm':{zh:'确定删除此工具？',en:'Delete this tool?'},
+  'modal.title':{zh:'注册自定义 MCP 工具',en:'Register Custom MCP Tool'},
+  'modal.name':{zh:'工具名称',en:'Tool Name'},
+  'modal.nameHint':{zh:'小写字母、下划线，不含空格',en:'Lowercase, underscores, no spaces'},
+  'modal.desc':{zh:'描述',en:'Description'},
+  'modal.descPh':{zh:'这个工具做什么？',en:'What does this tool do?'},
+  'modal.category':{zh:'分类',en:'Category'},
+  'modal.catPh':{zh:'自定义',en:'Custom'},
+  'modal.webhook':{zh:'Webhook URL',en:'Webhook URL'},
+  'modal.webhookHint':{zh:'工具参数将以 JSON 格式 POST 到此地址',en:'Tool arguments will be POSTed here as JSON'},
+  'modal.schema':{zh:'参数 Schema (JSON)',en:'Parameter Schema (JSON)'},
+  'modal.cancel':{zh:'取消',en:'Cancel'},
+  'modal.submit':{zh:'注册',en:'Register'},
+  'regSuccess':{zh:'工具注册成功',en:'Tool registered successfully'},
+  'regFail':{zh:'注册失败',en:'Registration failed'},
+  'invalidJson':{zh:'JSON 格式错误',en:'Invalid JSON'},
+  'fillRequired':{zh:'请填写工具名称和 Webhook URL',en:'Please fill in tool name and webhook URL'},
+};
+const TOOL_I18N={
+  'get_robot_status':{zh:{name:'获取机器人状态',desc:'返回最新的机器人状态、关节反馈、夹爪反馈和视觉新鲜度'}},
+  'diagnose_ros':{zh:{name:'ROS 诊断',desc:'检查预期的 reBotArm ROS 服务、动作和反馈话题是否可用'}},
+  'enable_robot':{zh:{name:'启用机器人',desc:'启用机器人控制器。此操作本身不会发送运动目标'}},
+  'disable_robot':{zh:{name:'禁用机器人',desc:'禁用机器人控制器'}},
+  'safe_home':{zh:{name:'安全归位',desc:'将机械臂移动到配置的安全归位位置。需要 motion_mode=allow'}},
+  'move_to_pose':{zh:{name:'移动到位姿',desc:'将末端执行器移动到笛卡尔位姿。需要 motion_mode=allow'}},
+  'move_joints':{zh:{name:'移动关节',desc:'使用安全两点轨迹移动一个或多个机械臂关节（弧度）。需要 motion_mode=allow'}},
+  'ik_check':{zh:{name:'IK 可达性检查',desc:'对目标位姿运行 IK 可达性检查，不执行运动'}},
+  'set_gripper_opening_mm':{zh:{name:'设置夹爪开度',desc:'命令夹爪开度（毫米），0 闭合至 90 全开。需要 motion_mode=allow'}},
+  'gravity_compensation_status':{zh:{name:'重力补偿状态',desc:'查询控制器端重力补偿是否激活'}},
+  'gravity_compensation_start':{zh:{name:'启动重力补偿',desc:'启动控制器端重力补偿。需要 motion_mode=allow'}},
+  'gravity_compensation_stop':{zh:{name:'停止重力补偿',desc:'停止控制器端重力补偿'}},
+  'detect_blocks':{zh:{name:'检测方块',desc:'返回最新的模拟色块检测结果，可按颜色过滤'}},
+  'pick_color':{zh:{name:'拾取色块',desc:'用"靠近-闭合-提升"序列拾取最新检测到的色块。需要 motion_mode=allow'}},
+  'record_start':{zh:{name:'开始录制',desc:'如果模拟任务服务器正在运行，则开始 MuJoCo 任务录制'}},
+  'record_stop':{zh:{name:'停止录制',desc:'停止 MuJoCo 任务录制并保存已捕获的 CSV'}},
+  'record_replay':{zh:{name:'回放录制',desc:'回放内存中最新的 MuJoCo 任务录制。需要 motion_mode=allow'}},
+  'record_clear':{zh:{name:'清除录制',desc:'清除当前 MuJoCo 任务录制缓冲区'}},
+};
+const CAT_I18N={'状态与诊断':'Status & Diagnostics','使能控制':'Enable Control','运动控制':'Motion Control','夹爪控制':'Gripper Control','重力补偿':'Gravity Compensation','视觉抓取':'Vision & Pick','录制回放':'Record & Replay'};
+let curLang='zh';
+function t(key){const e=DICT[key];return e?e[curLang]:key;}
+function tt(name){const ti=TOOL_I18N[name];return(curLang==='zh'&&ti)?ti:null;}
+function catName(zh){return(curLang==='en'&&CAT_I18N[zh])?CAT_I18N[zh]:zh;}
+function applyI18n(){document.querySelectorAll('[data-i18n]').forEach(el=>{const k=el.dataset.i18n;const e=DICT[k];if(e)el.textContent=e[curLang];});document.querySelectorAll('[data-i18n-ph]').forEach(el=>{const k=el.dataset.i18nPh;const e=DICT[k];if(e)el.placeholder=e[curLang];});}
+function setLang(l){curLang=l;try{localStorage.setItem(LANG_KEY,l);}catch(_){}applyI18n();document.getElementById('lang-toggle').textContent=l==='zh'?'EN':'中文';if(typeof allTools!=='undefined'&&allTools.length)renderTools(allTools);}
+function initLang(){try{curLang=localStorage.getItem(LANG_KEY)||'zh';}catch(_){curLang='zh';}setLang(curLang);}
+
+/* ===== State ===== */
+const MOTION_TOOLS=["safe_home","gravity_compensation_start","set_gripper_opening_mm","move_to_pose","move_joints","pick_color","record_replay"];
+const PARAMS_FILTER={"move_to_pose":["x","y","z","duration"]};
+let allTools=[];
+
+/* ===== Load tools ===== */
 async function loadTools(){
   try{
-    const r = await fetch("/tools");
-    const data = await r.json();
-    if(!data.ok){throw new Error(data.error||"加载失败")}
-    renderTools(data.tools);
-    document.getElementById("dot").classList.add("online");
-    document.getElementById("status-text").textContent = `${"connected"} ${data.tools.length} tools`;
-    document.getElementById("chat-input").disabled = false;
-    document.getElementById("chat-btn").disabled = false;
+    const r=await fetch('/tools');
+    const data=await r.json();
+    if(!data.ok)throw new Error(data.error||t('loadFail'));
+    allTools=data.tools||[];
+    renderTools(allTools);
+    const pill=document.getElementById('status-pill');
+    pill.classList.add('online');
+    document.getElementById('status-text').textContent=t('status.connected')+' '+allTools.length+' '+t('tools');
+    document.getElementById('chat-input').disabled=false;
+    document.getElementById('chat-btn').disabled=false;
   }catch(e){
-    document.getElementById("tools-container").innerHTML = `<div class="loading" style="color:var(--red)">加载失败: ${e.message}<br><button onclick="loadTools()" style="margin-top:8px;background:var(--teal);border:none;border-radius:4px;padding:4px 12px;cursor:pointer">重试</button></div>`;
-    document.getElementById("status-text").textContent = "连接失败";
+    document.getElementById('tools-container').innerHTML='<div class="loading" style="color:var(--red)">'+t('loadFail')+': '+e.message+'<br><button onclick="loadTools()" style="margin-top:8px;background:var(--teal);border:none;border-radius:4px;padding:4px 12px;cursor:pointer">'+t('retry')+'</button></div>';
+    document.getElementById('status-text').textContent=t('status.failed');
   }
 }
 
+/* ===== Render tools ===== */
 function renderTools(tools){
-  const cats = {};
-  tools.forEach(t=>{
-    const info = t.category || ["其他","#a7ada7"];
-    const catName = info[0];
-    if(!cats[catName]) cats[catName] = {color:info[1], tools:[]};
-    cats[catName].tools.push(t);
+  const filter=document.getElementById('search').value.toLowerCase();
+  const filtered=filter?tools.filter(tl=>{const ti=TOOL_I18N[tl.name];const dn=(ti&&ti.zh)?ti.zh.name:tl.name;const dd=(ti&&ti.zh)?ti.zh.desc:tl.description;return dn.toLowerCase().includes(filter)||dd.toLowerCase().includes(filter);}):tools;
+  const cats={};
+  filtered.forEach(t=>{
+    const info=t.category||['Other','#a7ada7'];
+    const cn=info[0];
+    if(!cats[cn])cats[cn]={color:info[1],tools:[]};
+    cats[cn].tools.push(t);
   });
-  let html = "";
-  for(const [name, info] of Object.entries(cats)){
-    html += `<div class="cat-section"><div class="cat-title"><span class="cat-badge" style="background:${info.color}"></span>${name}</div><div class="tools-grid">`;
-    for(const t of info.tools){
-      const isMotion = MOTION_TOOLS.includes(t.name);
-      html += `<div class="tool-card"><div class="tool-name">${t.name}${isMotion?'<span class="motion-tag">运动</span>':""}</div><div class="tool-desc">${t.description||""}</div>`;
-      const params = t.parameters?.properties || {};
-      const required = t.parameters?.required || [];
-      if(Object.keys(params).length > 0){
-        html += '<div class="tool-params">';
-        for(const [pname, pinfo] of Object.entries(params)){
-          const req = required.includes(pname);
-          const def = pinfo.default !== undefined ? pinfo.default : "";
-          const ptype = pinfo.type || "string";
-          html += `<div class="param-row"><label>${pname}${req?"*":""}</label><input type="${ptype==="number"?"number":"text"}" data-tool="${t.name}" data-param="${pname}" value="${def}" placeholder="${ptype}"/></div>`;
+  let html='';
+  for(const[name,info]of Object.entries(cats)){
+ html+='<div class="cat-section"><div class="cat-title"><span class="cat-badge" style="background:'+info.color+'"></span>'+catName(name)+'<span class="cat-count">'+info.tools.length+' '+t('tools')+'</span></div><div class="tools-grid">';
+    for(const tool of info.tools){
+     const isMotion=MOTION_TOOLS.includes(tool.name)||tool.is_motion;
+      const isCustom=tool.custom;
+      const tInfo=tt(tool.name);
+      const dn=tInfo&&tInfo.zh?tInfo.zh.name:tool.name;
+      const dd=tInfo&&tInfo.zh?tInfo.zh.desc:(tool.description||'');
+      html+='<div class="tool-card'+(isCustom?' custom':'')+'"><div class="tool-head"><span class="tool-name">'+dn+'</span>';
+      if(isMotion)html+='<span class="tag motion">'+t('motion')+'</span>';
+      if(isCustom)html+='<span class="tag custom">'+t('custom')+'</span>';
+      html+='</div><div class="tool-desc">'+dd+'</div>';
+      const params=tool.parameters&&tool.parameters.properties||{};
+      const req=tool.parameters&&tool.parameters.required||[];
+      if(Object.keys(params).length>0){
+        html+='<div class="tool-params">';
+        const allowed=PARAMS_FILTER[tool.name];const paramEntries=allowed?Object.entries(params).filter(([k])=>allowed.includes(k)):Object.entries(params);for(const[pn,pi]of paramEntries){
+          const isReq=req.includes(pn);
+          const def=pi.default!==undefined?pi.default:'';
+          const pt=pi.type||'string';
+          html+='<div class="param-row"><label>'+pn+(isReq?'*':'')+'</label><input type="'+(pt==='number'||pt==='integer'?'number':'text')+'" data-tool="'+tool.name+'" data-param="'+pn+'" value="'+def+'" placeholder="'+pt+'"/></div>';
         }
-        html += '</div>';
+        html+='</div>';
+      }else{
+        html+='<div class="no-params">'+t('noParams')+'</div>';
       }
-      html += `<button class="btn-call" onclick="callTool('${t.name}')">调用</button></div>`;
+      html+='<button class="btn-call" onclick="callTool(\''+tool.name+'\')">'+t('call')+'</button>';
+      if(isCustom)html+='<button class="btn-del" onclick="delTool(\''+tool.name+'\')">&times;</button>';
+      html+='</div>';
     }
-    html += '</div></div>';
+    html+='</div></div>';
   }
-  document.getElementById("tools-container").innerHTML = html;
+  document.getElementById('tools-container').innerHTML=html||'<div class="loading">'+t('noParams')+'</div>';
 }
 
+/* ===== Call tool ===== */
 async function callTool(name){
-  const inputs = document.querySelectorAll(`input[data-tool="${name}"]`);
-  const args = {};
+  const inputs=document.querySelectorAll('input[data-tool="'+name+'"]');
+  const args={};
   inputs.forEach(inp=>{
-    const val = inp.value.trim();
-    if(val === "") return;
-    const ptype = inp.placeholder;
-    if(ptype === "number" || ptype === "integer"){
-      args[inp.dataset.param] = parseFloat(val);
-    } else if(ptype === "boolean"){
-      args[inp.dataset.param] = val === "true";
-    } else {
-      args[inp.dataset.param] = val;
-    }
+    const val=inp.value.trim();
+    if(val==='')return;
+    const pt=inp.placeholder;
+    if(pt==='number'||pt==='integer')args[inp.dataset.param]=parseFloat(val);
+    else if(pt==='boolean')args[inp.dataset.param]=val==='true';
+    else args[inp.dataset.param]=val;
   });
-  const btn = event.target;
-  btn.disabled = true;
-  btn.textContent = "执行中...";
-  addLog("tool", `调用 ${name}(${JSON.stringify(args)})`);
-  try{
-    const r = await fetch("/call_tool", {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({name, arguments:args})});
-    const data = await r.json();
-    addLog("tool", `${name} 结果: ${JSON.stringify(data).slice(0,500)}`);
-  }catch(e){
-    addLog("error", `调用失败: ${e.message}`);
+  const btn=event.target;
+  btn.disabled=true;
+ btn.textContent=t('running');
+  addLog('tool',t('callTool')+' '+(tt(name)?tt(name).zh.name:name)+'('+JSON.stringify(args)+')');
+ try{
+   const r=await fetch('/call_tool',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name,arguments:args})});
+   const data=await r.json();
+    addLog('tool',(tt(name)?tt(name).zh.name:name)+' '+t('result')+': '+JSON.stringify(data).slice(0,500));
+ }catch(e){
+    addLog('error',t('callFail')+': '+e.message);
   }
-  btn.disabled = false;
-  btn.textContent = "调用";
+  btn.disabled=false;
+  btn.textContent=t('call');
 }
 
-function addLog(type, text){
-  const log = document.getElementById("chat-log");
-  const div = document.createElement("div");
-  div.className = "msg " + type;
-  div.textContent = text;
-  log.appendChild(div);
-  log.scrollTop = log.scrollHeight;
-}
-
-async function sendChat(){
-  const input = document.getElementById("chat-input");
-  const btn = document.getElementById("chat-btn");
-  const text = input.value.trim();
-  if(!text) return;
-  addLog("user", text);
-  input.value = "";
-  btn.disabled = true;
-  btn.textContent = "等待...";
+/* ===== Delete custom tool ===== */
+async function delTool(name){
+  if(!confirm(t('delConfirm')))return;
   try{
-    const r = await fetch("/chat", {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({text})});
-    const data = await r.json();
+    await fetch('/unregister_tool',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name})});
+    loadTools();
+  }catch(e){addLog('error',e.message);}
+}
+
+/* ===== Chat ===== */
+function addLog(type,text){
+  const log=document.getElementById('chat-log');
+  const div=document.createElement('div');
+  div.className='msg '+type;
+  div.textContent=text;
+  log.appendChild(div);
+  log.scrollTop=log.scrollHeight;
+}
+async function sendChat(){
+  const input=document.getElementById('chat-input');
+  const btn=document.getElementById('chat-btn');
+  const text=input.value.trim();
+  if(!text)return;
+  addLog('user',text);
+  input.value='';
+  btn.disabled=true;
+  btn.textContent=t('chat.waiting');
+  try{
+    const r=await fetch('/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text})});
+    const data=await r.json();
     if(data.ok){
-      addLog("assistant", data.text || "(无回复)");
+      addLog('assistant',data.text||'(no response)');
       if(data.events){
         for(const ev of data.events){
-          if(ev.type === "tool"){
-            addLog("tool", `${ev.name}(${JSON.stringify(ev.arguments)}) → ${JSON.stringify(ev.result).slice(0,300)}`);
-          } else if(ev.type === "error"){
-            addLog("error", ev.message);
-          }
+          if(ev.type==='tool')addLog('tool',(tt(ev.name)?tt(ev.name).zh.name:ev.name)+'('+JSON.stringify(ev.arguments)+') -> '+JSON.stringify(ev.result).slice(0,300));
+          else if(ev.type==='error')addLog('error',ev.message);
+          else if(ev.type==='info')addLog('info',ev.message);
         }
       }
-    } else {
-      addLog("error", data.error || "请求失败");
+    }else{
+      addLog('error',data.error||'Request failed');
     }
   }catch(e){
-    addLog("error", e.message);
+    addLog('error',e.message);
   }
-  btn.disabled = false;
-  btn.textContent = "发送";
+  btn.disabled=false;
+  btn.textContent=t('chat.send');
 }
 
-document.getElementById("chat-btn").addEventListener("click", sendChat);
-document.getElementById("chat-input").addEventListener("keydown", e=>{if(e.key==="Enter") sendChat()});
+/* ===== Register modal ===== */
+function openModal(){document.getElementById('register-modal').classList.add('active');}
+function closeModal(){document.getElementById('register-modal').classList.remove('active');}
+
+async function submitRegistration(){
+  const name=document.getElementById('reg-name').value.trim();
+  const desc=document.getElementById('reg-desc').value.trim();
+  const cat=document.getElementById('reg-category').value.trim()||t('modal.catPh');
+  const webhook=document.getElementById('reg-webhook').value.trim();
+  const paramsRaw=document.getElementById('reg-params').value.trim();
+  if(!name||!webhook){alert(t('fillRequired'));return;}
+  let params={};
+  if(paramsRaw){
+    try{params=JSON.parse(paramsRaw);}catch(e){alert(t('invalidJson')+': '+e.message);return;}
+  }
+  const btn=document.getElementById('modal-submit');
+  btn.disabled=true;
+  try{
+    const r=await fetch('/register_tool',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name,description:desc,category:cat,webhook_url:webhook,parameters:params})});
+    const data=await r.json();
+    if(data.ok){
+      addLog('info',t('regSuccess')+': '+name);
+      closeModal();
+      loadTools();
+      ['reg-name','reg-desc','reg-category','reg-webhook','reg-params'].forEach(id=>document.getElementById(id).value='');
+    }else{
+      alert(t('regFail')+': '+(data.error||''));
+    }
+  }catch(e){
+    alert(t('regFail')+': '+e.message);
+  }
+  btn.disabled=false;
+}
+
+/* ===== Wire up ===== */
+document.getElementById('lang-toggle').addEventListener('click',()=>setLang(curLang==='zh'?'en':'zh'));
+document.getElementById('search').addEventListener('input',()=>renderTools(allTools));
+document.getElementById('btn-register').addEventListener('click',openModal);
+document.getElementById('modal-close').addEventListener('click',closeModal);
+document.getElementById('modal-cancel').addEventListener('click',closeModal);
+document.getElementById('modal-submit').addEventListener('click',submitRegistration);
+document.getElementById('register-modal').addEventListener('click',e=>{if(e.target.id==='register-modal')closeModal();});
+document.getElementById('chat-btn').addEventListener('click',sendChat);
+document.getElementById('chat-input').addEventListener('keydown',e=>{if(e.key==='Enter')sendChat();});
+
+initLang();
 loadTools();
 </script>
 </body>
-</html>"""
+</html>
+"""
+
+
+# Per-request custom-tool registry (name -> definition).
+# Custom tools are user-defined MCP tools backed by a webhook URL.
+_CUSTOM_TOOLS: list[dict[str, Any]] = []
+
+
+async def _http_register_tool(payload: dict[str, Any]) -> dict[str, Any]:
+    """Register a user-defined MCP tool backed by a webhook URL."""
+    name = str(payload.get("name", "")).strip()
+    if not name:
+        return {"ok": False, "error": "missing tool name"}
+    webhook_url = str(payload.get("webhook_url", "")).strip()
+    if not webhook_url:
+        return {"ok": False, "error": "missing webhook_url"}
+    description = str(payload.get("description", "") or "")
+    category = str(payload.get("category", "") or "Custom")
+    parameters = payload.get("parameters") or {}
+    if isinstance(parameters, str):
+        try:
+            parameters = json.loads(parameters)
+        except json.JSONDecodeError as exc:
+            return {"ok": False, "error": f"invalid parameters JSON: {exc}"}
+    # Remove any existing tool with the same name, then append.
+    _CUSTOM_TOOLS[:] = [t for t in _CUSTOM_TOOLS if t["name"] != name]
+    _CUSTOM_TOOLS.append({
+        "name": name,
+        "description": description,
+        "category": (category, "#a78bfa"),
+        "parameters": parameters,
+        "webhook_url": webhook_url,
+        "custom": True,
+    })
+    return {"ok": True, "name": name}
+
+
+async def _http_unregister_tool(payload: dict[str, Any]) -> dict[str, Any]:
+    """Remove a previously registered custom tool by name."""
+    name = str(payload.get("name", "")).strip()
+    before = len(_CUSTOM_TOOLS)
+    _CUSTOM_TOOLS[:] = [t for t in _CUSTOM_TOOLS if t["name"] != name]
+    removed = before - len(_CUSTOM_TOOLS)
+    return {"ok": True, "removed": removed}
 
 
 async def _http_list_tools(args: argparse.Namespace) -> dict[str, Any]:
@@ -925,7 +1232,17 @@ async def _http_list_tools(args: argparse.Namespace) -> dict[str, Any]:
                     "category": cat_info,
                     "is_motion": name in MOTION_TOOLS,
                 })
-            return {"ok": True, "tools": tools}
+        # Append user-registered custom tools.
+        for ct in _CUSTOM_TOOLS:
+            tools.append({
+                "name": ct["name"],
+                "description": ct["description"],
+                "parameters": ct.get("parameters") or {"type": "object", "properties": {}},
+                "category": ct["category"],
+                "is_motion": False,
+                "custom": True,
+            })
+        return {"ok": True, "tools": tools}
     except Exception as exc:
         return {"ok": False, "error": str(exc)}
 
@@ -936,6 +1253,28 @@ async def _http_call_tool(args: argparse.Namespace, payload: dict[str, Any]) -> 
     arguments = payload.get("arguments") or {}
     if not name:
         return {"ok": False, "error": "missing tool name"}
+    # Check if this is a user-registered custom tool (webhook-backed).
+    custom = next((t for t in _CUSTOM_TOOLS if t["name"] == name), None)
+    if custom:
+        try:
+            req_data = json.dumps(arguments).encode("utf-8")
+            req = urllib.request.Request(
+                custom["webhook_url"],
+                data=req_data,
+                headers={"Content-Type": "application/json"},
+                method="POST",
+            )
+            with urllib.request.urlopen(req, timeout=30) as resp:
+                body = resp.read().decode("utf-8", errors="replace")
+                try:
+                    result = json.loads(body)
+                except json.JSONDecodeError:
+                    result = {"raw": body}
+                return {"ok": True, "result": result, "custom": True}
+        except urllib.error.URLError as exc:
+            return {"ok": False, "error": f"webhook call failed: {exc}", "custom": True}
+        except Exception as exc:
+            return {"ok": False, "error": str(exc), "custom": True}
     try:
         async with Client(args.mcp_url) as mcp:
             result = await _call_mcp_tool(mcp, name, arguments)
@@ -1118,7 +1457,7 @@ class _ChatHTTPHandler(BaseHTTPRequestHandler):
             self._write_json(404, {"ok": False, "error": "not found"})
 
     def do_POST(self):  # noqa: N802
-        if self.path not in ("/chat", "/call_tool"):
+        if self.path not in ("/chat", "/call_tool", "/register_tool", "/unregister_tool"):
             self._write_json(404, {"ok": False, "error": "not found"})
             return
         try:
@@ -1132,6 +1471,10 @@ class _ChatHTTPHandler(BaseHTTPRequestHandler):
         try:
             if self.path == "/chat":
                 result = asyncio.run(_http_handle_chat(self.server_args, payload))
+            elif self.path == "/register_tool":
+                result = asyncio.run(_http_register_tool(payload))
+            elif self.path == "/unregister_tool":
+                result = asyncio.run(_http_unregister_tool(payload))
             else:
                 result = asyncio.run(_http_call_tool(self.server_args, payload))
         except Exception as exc:
@@ -1147,7 +1490,7 @@ async def run_http_server(args: argparse.Namespace) -> int:
 
     _ChatHTTPHandler.server_args = args
     httpd = ThreadingHTTPServer((host, port), _ChatHTTPHandler)
-    print(f"[text-agent-http] listening on http://{host}:{port}/ (dashboard) /chat (llm) /tools (list) /call_tool (invoke)", flush=True)
+    print(f"[text-agent-http] listening on http://{host}:{port}/ (dashboard) /chat (llm) /tools (list) /call_tool (invoke) /register_tool /unregister_tool", flush=True)
     print(f"[text-agent-http] MCP={args.mcp_url} model={args.model}", flush=True)
 
     loop = asyncio.get_event_loop()
