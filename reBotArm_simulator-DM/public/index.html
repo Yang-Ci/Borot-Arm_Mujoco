@@ -92,7 +92,7 @@
           <span data-i18n="ros.safeDisconnect">断开时自动安全回零并失能</span>
         </label>
         <label class="switch-row">
-          <input type="checkbox" id="ros-mirror">
+          <input type="checkbox" id="ros-mirror" checked>
           <span data-i18n="ros.mirror">镜像真实关节状态到网页</span>
         </label>
         <label class="switch-row">
@@ -117,7 +117,7 @@
         </div>
         <div class="ros-feedback">
           <span data-i18n="ros.feedbackError">反馈差值</span>
-          <strong id="ros-feedback-error" data-i18n="ros.feedbackWaiting">等待 /joint_states</strong>
+          <strong id="ros-feedback-error" data-i18n="ros.feedbackWaiting">等待 MuJoCo 物理关节反馈</strong>
         </div>
         <p class="ros-message" id="ros-message" data-i18n="ros.message">先在 Ubuntu 虚拟机启动 rosbridge，再输入地址连接。</p>
       </div>
@@ -345,10 +345,10 @@
   <script src="/lib/three-r128.min.js"></script>
   <script src="/lib/STLLoader-umd.js"></script>
   <script src="/lib/URDFLoader.js"></script>
-  <script src="/js/i18n.js?v=20260807-i18n1"></script>
+  <script src="/js/i18n.js?v=20260821-sync-detect1"></script>
   <script src="/js/ros/rebot-ros-client.js?v=20260807-i18n1"></script>
-  <script src="/js/rebot-sim.js?v=20260807-i18n1"></script>
-  <script src="/js/ros/rebot-ros-ui.js?v=20260807-i18n1"></script>
+  <script src="/js/rebot-sim.js?v=20260821-tcp-anchor-restore1"></script>
+  <script src="/js/ros/rebot-ros-ui.js?v=20260821-driver-route2"></script>
   <script src="/js/rebot-llm.js?v=20260807-i18n1"></script>
 </body>
 </html>

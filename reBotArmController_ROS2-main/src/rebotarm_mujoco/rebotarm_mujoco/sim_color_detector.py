@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from collections import deque
 from contextlib import redirect_stderr
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 import io
 import json
 import math
@@ -344,7 +344,12 @@ class MujocoSimColorDetector(Node):
             )
             distance = math.hypot(nearest.x - reference[0], nearest.y - reference[1])
             if distance <= self.object_association_max_distance_m:
-                associated.append(nearest)
+                # This detector is simulation-specific and already receives the
+                # authoritative MuJoCo object poses.  Keep the image-derived
+                # footprint/yaw, but use the associated body's exact center for
+                # motion planning so pixel quantization and height parallax do
+                # not turn into a one-sided grasp.
+                associated.append(replace(nearest, x=reference[0], y=reference[1]))
 
         associated.extend(
             item for item in detections if item.color not in colors_with_reference

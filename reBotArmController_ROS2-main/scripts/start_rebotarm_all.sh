@@ -8,7 +8,6 @@ WORKSPACE_DIR="$(cd -- "${SCRIPT_DIR}/.." >/dev/null 2>&1 && pwd)"
 
 SERIAL_CHANNEL="${SERIAL_CHANNEL:-/dev/ttyACM0}"
 ROSBRIDGE_PORT="${ROSBRIDGE_PORT:-9090}"
-ROSBRIDGE_ADDRESS="${ROSBRIDGE_ADDRESS:-0.0.0.0}"
 USE_RVIZ="${USE_RVIZ:-true}"
 
 PIDS=()
@@ -98,10 +97,13 @@ source_ros_environment
 start_launch "fake bringup" \
   ros2 launch rebotarm_bringup fake_bringup.launch.py
 
-start_launch "rosbridge websocket" \
-  ros2 launch rosbridge_server rosbridge_websocket_launch.xml \
-    port:="${ROSBRIDGE_PORT}" \
-    address:="${ROSBRIDGE_ADDRESS}"
+# rosbridge is owned by `./rebotarm start web`; this script only reuses it.
+if ss -ltn "sport = :${ROSBRIDGE_PORT}" 2>/dev/null | grep -q LISTEN; then
+  log "rosbridge port ${ROSBRIDGE_PORT} is already listening; reusing it."
+else
+  log "WARNING: rosbridge port ${ROSBRIDGE_PORT} is not listening."
+  log "Run './rebotarm start web' first so the web UI can talk to ROS."
+fi
 
 start_launch "hardware bringup" \
   ros2 launch rebotarm_bringup bringup.launch.py \
@@ -109,7 +111,7 @@ start_launch "hardware bringup" \
     use_rviz:="${USE_RVIZ}"
 
 log "startup complete."
-log "Ctrl+C will safely stop fake bringup, rosbridge, hardware bringup, and RViz."
+log "Ctrl+C will safely stop fake bringup, hardware bringup, and RViz."
 
 while true; do
   for index in "${!PIDS[@]}"; do

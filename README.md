@@ -151,7 +151,7 @@ cd reBot_Arm_Mujoco-DM
 ./rebotarm doctor
 ```
 
-The installer is idempotent: existing components that meet requirements are skipped; it does not remove the SDK, venv, or web `.env`; only missing items are installed. A summary of installed, skipped, version-mismatched, and failed items is printed at the end. Check-only mode (no system modifications):
+The installer is idempotent: existing components are preserved and the web `.env` is never overwritten. A different SDK revision produces a warning but does not block setup; if the venv uses an incompatible Python version, the old directory is backed up before it is rebuilt. A summary of installed, skipped, version-mismatched, and failed items is printed at the end. Check-only mode (no system modifications):
 
 ```bash
 ./setup.sh --check

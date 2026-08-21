@@ -10,15 +10,13 @@ SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
 source "${SCRIPT_DIR}/source_rebotarm_env.sh"
 
 ROSBRIDGE_PORT="${ROSBRIDGE_PORT:-9090}"
-ROSBRIDGE_ADDRESS="${ROSBRIDGE_ADDRESS:-0.0.0.0}"
 REAL2SIM_MODEL="${REAL2SIM_MODEL:-colored}"
 export REAL2SIM_MODEL
 MUJOCO_GRASP_MODE="${MUJOCO_GRASP_MODE:-physics}"
 MUJOCO_PHYSICS_JOINT_TOPIC="${MUJOCO_PHYSICS_JOINT_TOPIC:-/rebotarm/mujoco/physics_joint_states}"
 MUJOCO_OBJECT_STATES_TOPIC="${MUJOCO_OBJECT_STATES_TOPIC:-/rebotarm/mujoco/object_states}"
-SIM_IK_TOLERANCE="${SIM_IK_TOLERANCE:-0.020}"
-SIM_IK_ORIENTATION_TOLERANCE="${SIM_IK_ORIENTATION_TOLERANCE:-0.120}"
-ROSBRIDGE_MANAGED=0
+SIM_IK_TOLERANCE="${SIM_IK_TOLERANCE:-0.004}"
+SIM_IK_ORIENTATION_TOLERANCE="${SIM_IK_ORIENTATION_TOLERANCE:-0.070}"
 
 PIDS=()
 NAMES=()
@@ -221,28 +219,20 @@ fi
 start_process "MuJoCo color detector" \
   ros2 launch rebotarm_mujoco sim_color_detector.launch.py
 
-if port_in_use "${ROSBRIDGE_PORT}"; then
-  log "rosbridge port ${ROSBRIDGE_PORT} is already listening; reusing it."
-else
-  start_process "rosbridge websocket" \
-    ros2 launch rosbridge_server rosbridge_websocket_launch.xml \
-      port:="${ROSBRIDGE_PORT}" \
-      address:="${ROSBRIDGE_ADDRESS}"
-  ROSBRIDGE_MANAGED=1
+# rosbridge is owned by `./rebotarm start web`; this script only checks it.
+if ! port_in_use "${ROSBRIDGE_PORT}"; then
+  log "WARNING: rosbridge port ${ROSBRIDGE_PORT} is not listening."
+  log "Run './rebotarm start web' first so the web UI can talk to ROS."
 fi
 
 log "startup complete."
 HOST_IP="${HOST_IP:-$(detect_host_ip)}"
-log "web URL: ws://${HOST_IP}:${ROSBRIDGE_PORT}"
+log "web URL (requires './rebotarm start web'): ws://${HOST_IP}:${ROSBRIDGE_PORT}"
 log "MuJoCo grasp mode: ${MUJOCO_GRASP_MODE}"
 log "IK tolerance: ${SIM_IK_TOLERANCE} m, orientation tolerance: ${SIM_IK_ORIENTATION_TOLERANCE}"
 log "RGB camera topic: /rebotarm/mujoco/overhead_rgb/image_raw"
 log "Color detections topic: /rebotarm/vision/color_blocks/detections"
-if [[ "${ROSBRIDGE_MANAGED}" -eq 1 ]]; then
-  log "Ctrl+C stops fake driver, MuJoCo, camera, vision, and rosbridge."
-else
-  log "Ctrl+C stops fake driver, MuJoCo, camera, and vision; reused rosbridge stays running."
-fi
+log "Ctrl+C stops fake driver, MuJoCo, camera, and vision."
 
 while true; do
   for index in "${!PIDS[@]}"; do

@@ -35,9 +35,9 @@ else:
 _ARM_JOINTS = ("joint1", "joint2", "joint3", "joint4", "joint5", "joint6")
 _GRIPPER_OPEN_MM = 90.0
 _GRIPPER_CLOSE_MM = 0.0
-_GRIPPER_BASE_GAP_M = 0.014
+_GRIPPER_BASE_GAP_M = 0.0
 _GRIPPER_VISUAL_TRAVEL_M = 0.057
-_GRIPPER_EFFECTIVE_GAP_M = 0.071
+_GRIPPER_EFFECTIVE_GAP_M = 0.057
 _GRIPPER_MIN_OBJECT_GRASP_M = 0.018
 _GRIPPER_SQUEEZE_M = 0.004
 _GRIPPER_RELEASE_ANIMATION_MM = 70.0
@@ -973,6 +973,7 @@ class ReBotArmToolBridge(Node):
 
         safe_grasp_z = _VISION_SAFE_GRASP_Z_BY_COLOR_M.get(color, 0.132)
         grasp_z = self._clamp(max(float(requested_grasp_z), safe_grasp_z), 0.06, 0.25)
+        yaw_rad = self._select_reachable_grasp_yaw(x, y, grasp_z, yaw_rad)
         transit_floor = _VISION_TRANSIT_Z_BY_COLOR_M.get(color, _VISION_TRANSIT_Z_M)
         approach_z = self._clamp(
             max(float(requested_approach_z), transit_floor),
@@ -1022,6 +1023,30 @@ class ReBotArmToolBridge(Node):
             "first_lift_pose": self._top_down_pose(x, y, first_lift_z, yaw_rad),
             "lift_pose": self._top_down_pose(x, y, lift_z, yaw_rad),
         }
+
+    def _select_reachable_grasp_yaw(
+        self,
+        x: float,
+        y: float,
+        z: float,
+        yaw_rad: float,
+    ) -> float:
+        """Select between the two equivalent jaw-axis orientations.
+
+        A parallel gripper has 180-degree rotational symmetry.  Testing both
+        orientations avoids accepting a centimeter-scale best-effort IK pose
+        when the equivalent wrist orientation is accurately reachable.
+        """
+        candidates = (float(yaw_rad), float(yaw_rad) + math.pi)
+        for index, candidate in enumerate(candidates):
+            pose = self._top_down_pose(x, y, z, candidate)
+            result = self._solve_pose_ik(
+                pose,
+                tool=f"pick_color.select_yaw_{index}.ik",
+            )
+            if result.get("ros_success"):
+                return math.atan2(math.sin(candidate), math.cos(candidate))
+        return math.atan2(math.sin(float(yaw_rad)), math.cos(float(yaw_rad)))
 
     @staticmethod
     def _sleep_step(tool: str, seconds: float) -> dict[str, Any]:

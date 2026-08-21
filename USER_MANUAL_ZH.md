@@ -105,7 +105,8 @@ chmod +x setup.sh rebotarm
 - 只安装缺失或版本不兼容的项目 Python 包；
 - 不删除已有 SDK；
 - 不切换或覆盖已有 SDK Git 分支；
-- 不删除已有 `.venv`；
+- 已有 SDK 提交号与验证版本不同时只提示，不阻断安装；
+- `.venv` 的 Python 版本不兼容时，先将原目录重命名备份，再创建正确版本；
 - 不覆盖网页 `.env`；
 - 不删除用户配置的软件源；
 - 可以安全重复运行。
@@ -121,6 +122,13 @@ chmod +x setup.sh rebotarm
 7. rosdep 依赖；
 8. `colcon build --symlink-install`；
 9. Python/SDK 导入和 `/dev/ttyACM0` 检查。
+
+系统 Python 和项目虚拟环境的 Python 小版本必须一致，并与 ROS 2 对应。
+- Ubuntu 24.04 + ROS 2 Jazzy：使用系统 /usr/bin/python3.12
+- Ubuntu 22.04 + ROS 2 Humble：使用系统 /usr/bin/python3.10
+项目 .venv 必须由对应的系统 Python 创建，因为它通过 --system-site-packages 使用 ROS 的 Python 包。
+
+需要 Ubuntu 系统自带的 Python 版本，并用它创建项目虚拟环境。Ubuntu 24.04 要求 Python 3.12，Ubuntu 22.04 要求 Python 3.10。Conda base 中的 Python 3.13 可以保留，安装脚本不会使用它。
 
 ### 4.3 安装后复检
 
