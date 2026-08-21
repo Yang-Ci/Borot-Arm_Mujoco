@@ -6,14 +6,18 @@ const NS = 'rebotarm';
   function saveUrl(url) { try { localStorage.setItem(URL_STORAGE_KEY, url); } catch (_) {} }
  const OPEN_GRIPPER_M = 0.09;
   const CLOSE_GRIPPER_M = 0;
-  const GRIPPER_BASE_GAP_M = 0.014;
+  const GRIPPER_BASE_GAP_M = 0;
   const GRIPPER_VISUAL_TRAVEL_M = 0.057;
-  const GRIPPER_EFFECTIVE_GAP_M = 0.071;
+  const GRIPPER_EFFECTIVE_GAP_M = 0.057;
+  const GRIPPER_CLOSED_DISPLAY_SNAP_M = 0.003;
   const GRASP_SQUEEZE_M = 0.004;
   const MIN_OBJECT_GRASP_M = 0.018;
   const VISION_TRANSIT_Z_M = 0.32;
   const VISION_TRANSIT_Z_BY_COLOR_M = {
     blue: 0.410
+  };
+  const VISION_MOVE_ABOVE_FALLBACK_Z_BY_COLOR_M = {
+    blue: 0.180
   };
   const VISION_FIRST_LIFT_CLEARANCE_M = 0.085;
   const VISION_FIRST_LIFT_MIN_M = 0.275;
@@ -27,6 +31,7 @@ const NS = 'rebotarm';
   const JOINT_NAMES = ['joint1', 'joint2', 'joint3', 'joint4', 'joint5', 'joint6'];
   const REQUIRED_TOPICS = {
     jointStates: `/${NS}/joint_states`,
+    physicsJointStates: `/${NS}/mujoco/physics_joint_states`,
     armStatus: `/${NS}/arm_status`,
     gripper: `/${NS}/gripper/state`,
     cameraImage: `/${NS}/mujoco/overhead_rgb/image_raw`,
@@ -101,15 +106,17 @@ const NS = 'rebotarm';
   const mirrorHoldUntil = new Map();
   const COMMAND_INTERVAL_MS = 45;
  const MIRROR_HOLD_MS = 1800;
- let latestJointPositions = null;
+  let latestJointPositions = null;
   let latestJointStateAt = 0;
+  let latestPhysicsJointStateAt = 0;
   let latestGripperPosition = null;
   let latestGripperVelocity = null;
   let latestGripperAt = 0;
   let listedTopics = new Set();
   let listedServices = new Set();
   let listedActionServers = new Set();
-  let simulationDriverDetected = false;
+  let mujocoSyncAnnounced = false;
+  let fakeDriverDetected = false;
   let lowLevelPlayback = null;
   let lastTargetPoseSent = 0;
   let latestVisionPayload = null;
@@ -126,7 +133,8 @@ const NS = 'rebotarm';
   let gravityStatusSource = 'initial';
   let gravityStatusPollInFlight = false;
 
-  client.subscribe(REQUIRED_TOPICS.jointStates, 'sensor_msgs/msg/JointState', handleJointStates, { throttleRate: 80 });
+  client.subscribe(REQUIRED_TOPICS.jointStates, 'sensor_msgs/msg/JointState', (msg) => handleJointStates(msg, false), { throttleRate: 80 });
+  client.subscribe(REQUIRED_TOPICS.physicsJointStates, 'sensor_msgs/msg/JointState', (msg) => handleJointStates(msg, true), { throttleRate: 33 });
   client.subscribe(REQUIRED_TOPICS.gripper, 'rebotarm_msgs/msg/JointMotorState', handleGripperState, { throttleRate: 80 });
   client.subscribe(REQUIRED_TOPICS.armStatus, 'rebotarm_msgs/msg/ArmStatus', handleArmStatus, { throttleRate: 200 });
   client.subscribe(REQUIRED_TOPICS.cameraImage, 'sensor_msgs/msg/Image', handleCameraImage, { throttleRate: 250 });
@@ -143,9 +151,15 @@ const NS = 'rebotarm';
     }
     updateDiagnostics();
    if (detail.state === 'closed' || detail.state === 'error') {
+      latestPhysicsJointStateAt = 0;
+      mujocoSyncAnnounced = false;
+      fakeDriverDetected = false;
       updateGravityStatus(false, t('msg.rosNotConnected'), 'connection');
    }
     if (detail.state === 'open') {
+      latestPhysicsJointStateAt = 0;
+      mujocoSyncAnnounced = false;
+      fakeDriverDetected = false;
       window.setTimeout(() => {
         runDiagnostics();
       }, 250);
@@ -206,7 +220,7 @@ const NS = 'rebotarm';
  });
  if (els.visionColor) els.visionColor.addEventListener('change', () => {
     if (els.visionColor.value === 'auto') autoVisionTargetColor = '';
-    updateSelectedVisionTarget();
+    if (!visionSequenceBusy) updateSelectedVisionTarget();
   });
   if (els.visionFillPose) els.visionFillPose.addEventListener('click', fillPoseFromVisionTarget);
   if (els.visionMoveAbove) els.visionMoveAbove.addEventListener('click', moveAboveVisionTarget);
@@ -230,8 +244,14 @@ const NS = 'rebotarm';
   window.setInterval(updateDiagnostics, 1000);
   window.setInterval(pollGravityCompensationStatus, 500);
 
-  function handleJointStates(msg) {
+  function handleJointStates(msg, isPhysicsFeedback) {
     if (!window.reBotSim || !Array.isArray(msg.name) || !Array.isArray(msg.position)) return;
+    const now = performance.now();
+    if (isPhysicsFeedback) {
+      latestPhysicsJointStateAt = now;
+      announceMujocoSync(t('reason.mujocoPhysics'));
+    }
+    const useForDisplay = isPhysicsFeedback || !hasFreshPhysicsJointFeedback(now);
     const next = {};
     msg.name.forEach((name, index) => {
       const simName = normalizeJointName(name);
@@ -239,15 +259,18 @@ const NS = 'rebotarm';
       next[simName] = msg.position[index];
     });
 
-    if (Object.keys(next).length) {
+    // /joint_states is the canonical controller/hardware feedback in every
+    // deployment, including real-hardware + MuJoCo digital-twin mode.  Keep it
+    // separate from MuJoCo physics feedback so display synchronization cannot
+    // change trajectory starts or gripper completion checks.
+    if (!isPhysicsFeedback && Object.keys(next).length) {
       latestJointPositions = { ...(latestJointPositions || {}), ...next };
-      latestJointStateAt = performance.now();
+      latestJointStateAt = now;
     }
-    updateFeedbackError(next);
+    if (!isPhysicsFeedback) updateFeedbackError(next);
 
-    if (els.mirror.checked && Object.keys(next).length) {
+    if (useForDisplay && (isPhysicsFeedback || els.mirror.checked) && Object.keys(next).length) {
       const mirrored = {};
-      const now = performance.now();
       Object.entries(next).forEach(([name, value]) => {
         // The hardware publishes a single finger travel in /joint_states.  The
         // simulator's `gripper` joint represents the complete opening and must
@@ -257,7 +280,7 @@ const NS = 'rebotarm';
         const holdUntil = mirrorHoldUntil.get(name) || 0;
         const target = simTargetAngles.get(name);
         const reachedTarget = typeof target === 'number' && Math.abs(target - value) < 0.025;
-        if (reachedTarget || now > holdUntil) {
+        if (isPhysicsFeedback || reachedTarget || now > holdUntil) {
           mirrorHoldUntil.delete(name);
           mirrored[name] = value;
         }
@@ -269,16 +292,21 @@ const NS = 'rebotarm';
         ? leftOpening
         : (Number.isFinite(rightOpening) ? -rightOpening : NaN);
       if (Number.isFinite(fingerOpening)) {
-        const gripperWidth = fingerOpeningToGripperCommand(fingerOpening);
+        const gripperWidth = snapClosedGripperForDisplay(fingerOpeningToGripperCommand(fingerOpening));
         const holdUntil = mirrorHoldUntil.get('gripper') || 0;
         const target = simTargetAngles.get('gripper');
         const reachedTarget = typeof target === 'number' && Math.abs(target - gripperWidth) < 0.003;
-        if (reachedTarget || now > holdUntil) {
+        if (isPhysicsFeedback || reachedTarget || now > holdUntil) {
           mirrorHoldUntil.delete('gripper');
           mirrored.gripper = gripperWidth;
         }
       }
-      if (Object.keys(mirrored).length) window.reBotSim.setAngles(mirrored, { source: 'ros' });
+      if (Object.keys(mirrored).length) {
+        window.reBotSim.setAngles(mirrored, {
+          source: isPhysicsFeedback ? 'mujoco-physics' : 'ros',
+          emit: false
+        });
+      }
     }
     updateDiagnostics();
   }
@@ -291,13 +319,13 @@ const NS = 'rebotarm';
     if (typeof msg.velocity === 'number') {
       latestGripperVelocity = msg.velocity;
     }
-    if (els.mirror.checked && window.reBotSim && typeof msg.position === 'number') {
+    if (els.mirror.checked && !hasFreshPhysicsJointFeedback() && window.reBotSim && typeof msg.position === 'number') {
       const holdUntil = mirrorHoldUntil.get('gripper') || 0;
       const target = simTargetAngles.get('gripper');
       const reachedTarget = typeof target === 'number' && Math.abs(target - msg.position) < 0.003;
       if (reachedTarget || performance.now() > holdUntil) {
         mirrorHoldUntil.delete('gripper');
-        window.reBotSim.setGripperWidth(msg.position, { source: 'ros', animate: false });
+        window.reBotSim.setGripperWidth(snapClosedGripperForDisplay(msg.position), { source: 'ros', animate: false });
       }
     }
     if (!visionSequenceBusy && typeof msg.position === 'number' && simTargetAngles.has('gripper')) {
@@ -313,6 +341,7 @@ const NS = 'rebotarm';
   }
 
   function handleArmStatus(msg) {
+    fakeDriverDetected = String(msg && msg.mode || '').toLowerCase().startsWith('fake_');
     const enabled = msg.enabled ? t('st.enabled') : t('st.disabled');
     const mode = msg.mode || 'unknown';
    const machine = msg.state_machine || 'unknown';
@@ -448,9 +477,6 @@ const NS = 'rebotarm';
       listedTopics = new Set(topicList);
       listedServices = new Set(serviceList);
       listedActionServers = new Set(actionList);
-      const hasSimulationTopics = topicList.includes(REQUIRED_TOPICS.cameraImage)
-        || topicList.includes(REQUIRED_TOPICS.objectStates)
-        || topicList.includes(REQUIRED_TOPICS.visionDetections);
       writeLog(
         `rosapi: ${topicList.length} topics, ${serviceList.length} services, ${actionList.length} actions`,
         'ok'
@@ -461,7 +487,6 @@ const NS = 'rebotarm';
       if (!listedServices.has(REQUIRED_SERVICES.gravityStatus)) {
         updateGravityStatus(false, t('st.serviceUnavailable'));
       }
-      if (hasSimulationTopics) markSimulationDriverDetected(t('reason.rosapiSim'));
       if (!hasActionServer(`/${NS}/follow_joint_trajectory`)) {
         writeLog(t('log.lowLevelFallbackInfo'), 'info');
       }
@@ -525,6 +550,7 @@ const NS = 'rebotarm';
 
   function syncSimArmFromTrajectoryPoint(point) {
     if (!window.reBotSim || typeof window.reBotSim.setAngles !== 'function') return;
+    if (hasFreshPhysicsJointFeedback()) return;
     const angles = {};
     JOINT_NAMES.forEach((name, index) => {
       const pos = Number(point.positions[index]);
@@ -540,16 +566,21 @@ const NS = 'rebotarm';
   }
 
   function shouldUseLowLevelTrajectory() {
-    return simulationDriverDetected
-      || client.getLastMessageAt(REQUIRED_TOPICS.cameraImage) > 0
-      || client.getLastMessageAt(REQUIRED_TOPICS.objectStates) > 0
+    // Control routing is independent from the display feedback source.  A
+    // hardware controller and MuJoCo digital twin may legitimately run at the
+    // same time.  The fake driver identifies pure simulation explicitly and
+    // keeps its proven low-level playback path; real hardware uses its action
+    // server even while MuJoCo synchronization is active.
+    const simulationTaskServerDetected = listedServices.has(REQUIRED_SERVICES.recordStart);
+    return fakeDriverDetected
+      || simulationTaskServerDetected
       || !hasActionServer(`/${NS}/follow_joint_trajectory`);
   }
 
-  function markSimulationDriverDetected(reason) {
-    if (simulationDriverDetected) return;
-   simulationDriverDetected = true;
-    writeLog(t('log.simDriverDetected', {reason}), 'info');
+  function announceMujocoSync(reason) {
+    if (mujocoSyncAnnounced) return;
+    mujocoSyncAnnounced = true;
+    writeLog(t('log.mujocoSyncActive', {reason}), 'info');
  }
 
   function hasActionServer(actionName) {
@@ -743,8 +774,13 @@ const NS = 'rebotarm';
     return match ? `joint${match[1]}` : null;
   }
 
+  function hasFreshPhysicsJointFeedback(now) {
+    const current = Number.isFinite(Number(now)) ? Number(now) : performance.now();
+    return latestPhysicsJointStateAt > 0 && current - latestPhysicsJointStateAt < 500;
+  }
+
   function handleCameraImage(msg) {
-    markSimulationDriverDetected(t('reason.mujocoCamera'));
+    announceMujocoSync(t('reason.mujocoCamera'));
     if (!els.cameraCanvas || !msg) return;
     const width = Number(msg.width) || 0;
     const height = Number(msg.height) || 0;
@@ -836,7 +872,6 @@ const NS = 'rebotarm';
   }
 
   function handleVisionDetections(msg) {
-    markSimulationDriverDetected(t('reason.simVision'));
     if (!els.visionStatus && !els.visionTarget) return;
     let payload = null;
     try {
@@ -852,7 +887,7 @@ const NS = 'rebotarm';
    if (els.visionStatus) {
       els.visionStatus.textContent = count ? t('fb.visionCount', {count, color: payload.target_color || '--'}) : t('st.visionNone');
    }
-    updateSelectedVisionTarget();
+    if (!visionSequenceBusy) updateSelectedVisionTarget();
   }
 
   function handleMujocoObjectStates(msg) {
@@ -862,7 +897,7 @@ const NS = 'rebotarm';
     } catch (error) {
       return;
     }
-    markSimulationDriverDetected(t('reason.mujocoObject'));
+    announceMujocoSync(t('reason.mujocoObject'));
     if (window.reBotSim && typeof window.reBotSim.syncMujocoObjectStates === 'function') {
       window.reBotSim.syncMujocoObjectStates(payload.objects || []);
     }
@@ -903,7 +938,10 @@ const NS = 'rebotarm';
       els.visionTarget.textContent = '--';
       return;
     }
-    const approachZ = getVisionApproachZ(target);
+    const resolvedApproachZ = Number(target.resolved_move_above_z_m);
+    const approachZ = Number.isFinite(resolvedApproachZ)
+      ? resolvedApproachZ
+      : getVisionApproachZ(target);
    const graspPlan = estimateVisionGraspPlan(target);
     els.visionTarget.textContent = t('fb.visionTarget', {color: target.color, x: Number(target.x).toFixed(3), y: Number(target.y).toFixed(3), z: approachZ.toFixed(3), mm: Math.round(graspPlan.physicalGap * 1000), yaw: Math.round(graspPlan.yawRad * 180 / Math.PI)});
  }
@@ -982,7 +1020,11 @@ const NS = 'rebotarm';
 
   function fillPoseFromVisionTarget() {
     const target = selectedVisionTarget || chooseVisionTarget();
-    const pose = poseFromVisionTarget(getVisionApproachZ(target), target);
+    const resolvedApproachZ = Number(target && target.resolved_move_above_z_m);
+    const approachZ = Number.isFinite(resolvedApproachZ)
+      ? resolvedApproachZ
+      : getVisionApproachZ(target);
+    const pose = poseFromVisionTarget(approachZ, target);
     if (!pose) return;
     writePoseInputs(pose);
     if (client.connected) client.publishTargetPose(pose);
@@ -993,34 +1035,121 @@ const NS = 'rebotarm';
   async function moveAboveVisionTarget() {
     if (!controlAllowed(true)) return;
     const mode = els.visionColor ? String(els.visionColor.value || 'auto') : 'auto';
-    const target = mode === 'auto'
-      ? (chooseRandomVisionTarget() || selectedVisionTarget || chooseVisionTarget())
+    let target = mode === 'auto'
+      ? (selectedVisionTarget || chooseVisionTarget())
       : (selectedVisionTarget || chooseVisionTarget(mode));
-    const pose = poseFromVisionTarget(getVisionApproachZ(target), target);
-    if (!pose) return;
-    if (mode === 'auto') {
-      selectedVisionTarget = target;
-     renderVisionTarget(target);
-      writeLog(t('log.autoTarget', {color: target.color}), 'info');
-   }
-    const previousTarget = lastVisionTarget && !sameVisionTarget(lastVisionTarget, target)
-      ? lastVisionTarget
-      : null;
+    if (!target) {
+      setMessage(t('msg.noVisionTarget'));
+      return;
+    }
     const duration = getPoseDuration();
     setVisionBusy(true, 'move');
     try {
-      const route = buildVisionTransitRoute(previousTarget, target);
+      const requestedApproachZ = getVisionApproachZ(target);
+      target = await resolveReachableVisionTarget(target, requestedApproachZ);
+      selectedVisionTarget = target;
+      renderVisionTarget(target);
+      const resolvedApproachZ = Number(target.resolved_move_above_z_m);
+      const approachZ = Number.isFinite(resolvedApproachZ) ? resolvedApproachZ : requestedApproachZ;
+      const pose = poseFromVisionTarget(approachZ, target);
+      if (!pose) return;
+      const previousTarget = lastVisionTarget && !sameVisionTarget(lastVisionTarget, target)
+        ? lastVisionTarget
+        : null;
+      const route = [];
+      if (previousTarget) {
+        const previousResolvedZ = Number(previousTarget.resolved_move_above_z_m);
+        appendVisionRoutePose(
+          route,
+          poseFromVisionTarget(
+            Number.isFinite(previousResolvedZ) ? previousResolvedZ : getVisionTransitZ(previousTarget),
+            previousTarget
+          ),
+          t('msg.avoidLift', {color: previousTarget.color})
+        );
+        appendVisionRoutePose(route, pose, t('msg.moveAboveTarget', {color: target.color}));
+      }
       for (const waypoint of route) {
         await runVisionMoveStep(waypoint.pose, Math.max(1.1, duration * 0.60), waypoint.label);
-     }
-      await runVisionMoveStep(pose, duration, t('msg.moveAboveTarget', {color: target.color}));
-     lastVisionTarget = cloneVisionTarget(target);
+      }
+      const routedToPose = route.length && poseDistance(route[route.length - 1].pose, pose) < VISION_POSE_SKIP_M;
+      if (!routedToPose) {
+        await runVisionMoveStep(pose, duration, t('msg.moveAboveTarget', {color: target.color}));
+      }
+      lastVisionTarget = cloneVisionTarget(target);
     } catch (error) {
       const message = error && error.message ? error.message : t('msg.visionMoveAbort');
       setMessage(message);
       writeLog(message, 'warn');
     } finally {
       setVisionBusy(false);
+    }
+  }
+
+  async function resolveReachableVisionTarget(target, z) {
+    if (!target || !client.connected) return target;
+    const x = Number(target.x);
+    const y = Number(target.y);
+    const targetZ = Number(z);
+    if (![x, y, targetZ].every(Number.isFinite)) return target;
+
+    const baseYaw = estimateVisionGraspPlan(target).yawRad;
+    const color = String(target.color || '');
+    const width = Number(target.width_m);
+    const height = Number(target.height_m);
+    const rotationallySymmetric = color === 'red'
+      || color === 'yellow'
+      || (Number.isFinite(width) && Number.isFinite(height) && Math.abs(width - height) < 0.008);
+    const rawYawCandidates = [baseYaw, baseYaw + Math.PI];
+    if (rotationallySymmetric) rawYawCandidates.push(baseYaw + Math.PI / 2, baseYaw - Math.PI / 2);
+    const yawCandidates = rawYawCandidates
+      .map((yaw) => Math.atan2(Math.sin(yaw), Math.cos(yaw)))
+      .filter((yaw, index, values) => values.findIndex((value) => Math.abs(value - yaw) < 1e-6) === index);
+    const fallbackZ = Number(VISION_MOVE_ABOVE_FALLBACK_Z_BY_COLOR_M[color]);
+    const zCandidates = [targetZ];
+    if (Number.isFinite(fallbackZ) && Math.abs(fallbackZ - targetZ) > 1e-6) zCandidates.push(fallbackZ);
+    let best = { yawRad: baseYaw, z: targetZ, errorM: Infinity };
+
+    for (const candidateZ of zCandidates) {
+      for (let index = 0; index < yawCandidates.length; index += 1) {
+        const yawRad = yawCandidates[index];
+        const pose = {
+          position: { x, y, z: candidateZ },
+          orientation: topDownOrientationWithYaw(yawRad)
+        };
+        try {
+          const ik = await client.solveMoveToPoseIK(pose);
+          const errorM = readIkPositionError(ik);
+          if (errorM < best.errorM) best = { yawRad, z: candidateZ, errorM };
+          if (ik && ik.success === true) {
+            reportResolvedVisionPose(target, baseYaw, targetZ, yawRad, candidateZ);
+            return {
+              ...target,
+              resolved_grasp_yaw_rad: yawRad,
+              resolved_move_above_z_m: candidateZ
+            };
+          }
+        } catch (error) {
+          throw error;
+        }
+      }
+    }
+    const bestErrorMm = Number.isFinite(best.errorM) ? (best.errorM * 1000).toFixed(1) : '--';
+    throw new Error(t('msg.visionNoExactAbove', {color: target.color, error: bestErrorMm}));
+  }
+
+  function readIkPositionError(ik) {
+    const direct = Number(ik && ik.position_error);
+    if (Number.isFinite(direct)) return direct;
+    const match = String(ik && ik.message || '').match(/error=([0-9.]+)\s*mm/i);
+    return match ? Number(match[1]) / 1000 : Infinity;
+  }
+
+  function reportResolvedVisionPose(target, baseYaw, requestedZ, resolvedYaw, resolvedZ) {
+    const yawDelta = Math.abs(Math.atan2(Math.sin(resolvedYaw - baseYaw), Math.cos(resolvedYaw - baseYaw)));
+    if (yawDelta > 1e-6) writeLog(t('log.visionYawFlip', {color: target.color}), 'info');
+    if (Math.abs(resolvedZ - requestedZ) > 1e-6) {
+      writeLog(t('log.visionHeightFallback', {color: target.color, z: resolvedZ.toFixed(3)}), 'warn');
     }
   }
 
@@ -1503,6 +1632,9 @@ const NS = 'rebotarm';
       crossSection = Math.max(crossSection, nominal);
     }
 
+    const resolvedYaw = Number(target && target.resolved_grasp_yaw_rad);
+    if (Number.isFinite(resolvedYaw)) yawRad = resolvedYaw;
+
     const physicalGap = clamp(
       crossSection - GRASP_SQUEEZE_M,
       MIN_OBJECT_GRASP_M,
@@ -1732,11 +1864,18 @@ const NS = 'rebotarm';
     return clamp((Number(opening) / 0.0285) * OPEN_GRIPPER_M, CLOSE_GRIPPER_M, OPEN_GRIPPER_M);
   }
 
+  function snapClosedGripperForDisplay(position) {
+    const value = clamp(Number(position), CLOSE_GRIPPER_M, OPEN_GRIPPER_M);
+    return value <= GRIPPER_CLOSED_DISPLAY_SNAP_M ? CLOSE_GRIPPER_M : value;
+  }
+
   function publishGripper(position) {
     syncSimGripper(position);
     client.publishGripperCommand(position);
     simTargetAngles.set('gripper', position);
-   mirrorHoldUntil.set('gripper', performance.now() + 1200);
+    if (!hasFreshPhysicsJointFeedback()) {
+      mirrorHoldUntil.set('gripper', performance.now() + 1200);
+    }
     const feedback = typeof latestGripperPosition === 'number' ? t('fb.gripperFb', {mm: Math.round(latestGripperPosition * 1000)}) : '';
     setMessage(t('msg.gripperCmdPublished', {mm: Math.round(position * 1000), fb: feedback}));
     writeLog(t('log.gripperCmd', {mm: Math.round(position * 1000), topic: '/' + NS + '/gripper/cmd'}), 'ok');
@@ -1747,6 +1886,7 @@ const NS = 'rebotarm';
 
   function syncSimGripper(position) {
     if (!window.reBotSim || typeof window.reBotSim.setGripperWidth !== 'function') return;
+    if (hasFreshPhysicsJointFeedback()) return;
     window.reBotSim.setGripperWidth(position, { source: 'ui', animate: true });
   }
 

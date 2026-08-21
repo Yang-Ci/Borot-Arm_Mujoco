@@ -991,7 +991,8 @@ matte_black: { roughness: 0.48, metalness: 0.48 },
     updateJointLabel(name);
 
     const source = options && options.source ? options.source : (fromUser ? 'user' : 'sim');
-    if (source !== 'ros' && !(options && options.emit === false)) {
+    const isFeedback = source === 'ros' || source === 'mujoco-physics';
+    if (!isFeedback && !(options && options.emit === false)) {
       emitCommand({ type: 'joint', name, value, source, stamp: performance.now() });
     }
   }
@@ -2104,9 +2105,10 @@ matte_black: { roughness: 0.48, metalness: 0.48 },
     },
     setAngles(angles, options) {
       if (!angles || typeof angles !== 'object') return;
-      const source = options && options.source ? options.source : 'api';
-      if (source === 'ros' && (teachingPlayback || moveStart || animation || draggingTcp || dragSettling || gripperMotion)) return;
-      if (source !== 'ros') {
+    const source = options && options.source ? options.source : 'api';
+    const isFeedback = source === 'ros' || source === 'mujoco-physics';
+      if (isFeedback && (teachingPlayback || moveStart || animation || draggingTcp || dragSettling || gripperMotion)) return;
+      if (!isFeedback) {
         stopPath();
         teachingPlayback = null;
         moveStart = 0;
@@ -2118,8 +2120,9 @@ matte_black: { roughness: 0.48, metalness: 0.48 },
     },
     setGripperWidth(widthM, options) {
       const source = options && options.source ? options.source : 'api';
-      if (source === 'ros' && (teachingPlayback || moveStart || animation || draggingTcp || dragSettling || gripperMotion)) return;
-      if (source !== 'ros') {
+      const isFeedback = source === 'ros' || source === 'mujoco-physics';
+      if (isFeedback && (teachingPlayback || moveStart || animation || draggingTcp || dragSettling || gripperMotion)) return;
+      if (!isFeedback) {
         stopPath();
         teachingPlayback = null;
         moveStart = 0;

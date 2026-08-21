@@ -59,6 +59,13 @@
     <mesh name="finger_right_carriage_collision_mesh" file="colored_right_finger_carriage_grey.stl"/>
     <mesh name="finger_right_travel_stop_collision_mesh" file="colored_right_finger_travel_stop_yellow.stl"/>
 
+    <mesh name="finger_left_front_collision_mesh" file="left_finger_front.stl"/>
+    <mesh name="finger_left_mid_collision_mesh" file="left_finger_mid.stl"/>
+    <mesh name="finger_left_rear_collision_mesh" file="left_finger_rear.stl"/>
+    <mesh name="finger_right_front_collision_mesh" file="right_finger_front.stl"/>
+    <mesh name="finger_right_mid_collision_mesh" file="right_finger_mid.stl"/>
+    <mesh name="finger_right_rear_collision_mesh" file="right_finger_rear.stl"/>
+
     <material name="anodized_grey_mat" rgba="0.62 0.63 0.61 1" specular="0.28" shininess="0.24" metallic="0.72" roughness="0.34"/>
     <material name="hardware_black_mat" rgba="0.055 0.065 0.060 1" specular="0.50" shininess="0.72" metallic="0.82" roughness="0.20"/>
     <material name="matte_black_mat" rgba="0.14 0.16 0.15 1" specular="0.42" shininess="0.48" metallic="0.48" roughness="0.48"/>
@@ -94,22 +101,22 @@
     <geom name="floor" type="plane" size="1.0 1.0 0.02" material="floor_mat"/>
 
     <body name="task_table" pos="0.42 0 0.015">
-      <geom name="task_table_top" type="box" size="0.30 0.26 0.015" material="table_mat" contype="1" conaffinity="1" condim="6" friction="2.2 0.12 0.02" solref="0.003 1" solimp="0.98 0.995 0.0005"/>
+      <geom name="task_table_top" type="box" size="0.30 0.26 0.015" material="table_mat" contype="1" conaffinity="1" condim="6" friction="2.2 0.12 0.02" solref="0.002 1" solimp="0.98 0.995 0.0005"/>
       <geom name="task_pick_zone" type="box" pos="0 -0.13 0.0132" size="0.285 0.12 0.002" material="pick_zone_mat" contype="0" conaffinity="0"/>
       <geom name="task_place_zone" type="box" pos="0 0.13 0.0132" size="0.285 0.12 0.002" material="place_zone_mat" contype="0" conaffinity="0"/>
     </body>
 
     <body name="red_cube" pos="0.34 -0.13 0.055">
       <freejoint/>
-      <geom type="box" size="0.025 0.025 0.025" material="object_red_mat" contype="1" conaffinity="1" condim="6" mass="0.04" friction="6.0 0.25 0.04" solref="0.003 1" solimp="0.98 0.995 0.0005"/>
+      <geom type="box" size="0.025 0.025 0.025" material="object_red_mat" contype="1" conaffinity="1" condim="6" mass="0.04" friction="1.5 0.04 0.01" solref="0.002 1" solimp="0.98 0.995 0.0005"/>
     </body>
     <body name="blue_block" pos="0.50 0.11 0.048">
       <freejoint/>
-      <geom type="box" size="0.045 0.022 0.018" material="object_blue_mat" contype="1" conaffinity="1" condim="6" mass="0.05" friction="6.0 0.25 0.04" solref="0.003 1" solimp="0.98 0.995 0.0005"/>
+      <geom type="box" size="0.045 0.022 0.018" material="object_blue_mat" contype="1" conaffinity="1" condim="6" mass="0.05" friction="1.5 0.04 0.01" solref="0.002 1" solimp="0.98 0.995 0.0005"/>
     </body>
     <body name="yellow_cylinder" pos="0.44 -0.02 0.065">
       <freejoint/>
-      <geom type="cylinder" size="0.022 0.035" material="object_yellow_mat" contype="1" conaffinity="1" condim="6" mass="0.04" friction="6.0 0.25 0.04" solref="0.003 1" solimp="0.98 0.995 0.0005"/>
+      <geom type="cylinder" size="0.022 0.035" material="object_yellow_mat" contype="1" conaffinity="1" condim="6" mass="0.04" friction="1.5 0.04 0.01" solref="0.002 1" solimp="0.98 0.995 0.0005"/>
     </body>
     <body name="ik_target" mocap="true" pos="0.34 0 0.20">
       <geom name="ik_target_sphere" type="sphere" size="0.025" material="target_mat" contype="0" conaffinity="0"/>
@@ -171,7 +178,7 @@
                     <geom name="gripper_base_hardware_black_visual" type="mesh" mesh="gripper_base_hardware_black_mesh" material="gripper_hardware_black_mat"/>
                     <geom name="gripper_base_metal_visual" type="mesh" mesh="gripper_base_metal_mesh" material="gripper_base_metal_mat"/>
                     <geom name="gripper_base_seeed_yellow_visual" type="mesh" mesh="gripper_base_seeed_yellow_mesh" material="gripper_seeed_yellow_mat"/>
-                    <geom name="gripper_palm_collision" type="mesh" mesh="gripper_base_collision_mesh" rgba="0.18 0.22 0.21 0.12" contype="1" conaffinity="1" condim="6" mass="0.02" friction="1.2 0.10 0.02" solref="0.003 1" solimp="0.98 0.995 0.0005"/>
+                    <geom name="gripper_palm_collision" type="mesh" mesh="gripper_base_collision_mesh" rgba="0.18 0.22 0.21 0.12" contype="1" conaffinity="1" condim="6" mass="0.02" friction="1.2 0.10 0.02" solref="0.002 1" solimp="0.98 0.995 0.0005"/>
                     <site name="tcp" pos="-0.105 0 0" size="0.008" rgba="1 0.34 0.16 1"/>
 
                     <body name="finger_left_link" pos="0 0 0">
@@ -181,9 +188,11 @@
                       <geom name="finger_left_carriage_visual" type="mesh" mesh="finger_left_carriage_mesh" material="gripper_carriage_grey_mat"/>
                       <geom name="finger_left_travel_stop_visual" type="mesh" mesh="finger_left_travel_stop_mesh" material="gripper_seeed_yellow_mat"/>
                       <geom name="finger_left_crossed_rack_visual" type="mesh" mesh="finger_left_crossed_rack_mesh" material="gripper_rack_metal_mat"/>
-                      <geom name="finger_left_collision" type="mesh" mesh="finger_left_body_collision_mesh" rgba="0.18 0.22 0.21 0.20" contype="1" conaffinity="1" condim="6" mass="0.01" friction="6.0 0.25 0.04" solref="0.003 1" solimp="0.98 0.995 0.0005"/>
-                      <geom name="finger_left_carriage_collision" type="mesh" mesh="finger_left_carriage_collision_mesh" rgba="0.18 0.22 0.21 0.12" contype="1" conaffinity="1" condim="6" mass="0.01" friction="6.0 0.25 0.04" solref="0.003 1" solimp="0.98 0.995 0.0005"/>
-                      <geom name="finger_left_travel_stop_collision" type="mesh" mesh="finger_left_travel_stop_collision_mesh" rgba="0.18 0.22 0.21 0.12" contype="1" conaffinity="1" condim="6" mass="0.01" friction="6.0 0.25 0.04" solref="0.003 1" solimp="0.98 0.995 0.0005"/>
+                      <geom name="finger_left_front_collision" type="mesh" mesh="finger_left_front_collision_mesh" rgba="0.18 0.22 0.21 0.20" contype="1" conaffinity="1" condim="6" margin="0.00015" mass="0.003" friction="1.5 0.04 0.01" solref="0.002 1" solimp="0.98 0.995 0.0005"/>
+                      <geom name="finger_left_mid_collision" type="mesh" mesh="finger_left_mid_collision_mesh" rgba="0.18 0.22 0.21 0.20" contype="1" conaffinity="1" condim="6" margin="0.00015" mass="0.003" friction="1.5 0.04 0.01" solref="0.002 1" solimp="0.98 0.995 0.0005"/>
+                      <geom name="finger_left_rear_collision" type="mesh" mesh="finger_left_rear_collision_mesh" rgba="0.18 0.22 0.21 0.20" contype="1" conaffinity="1" condim="6" margin="0.00015" mass="0.004" friction="1.5 0.04 0.01" solref="0.002 1" solimp="0.98 0.995 0.0005"/>
+                      <geom name="finger_left_carriage_collision" type="mesh" mesh="finger_left_carriage_collision_mesh" rgba="0.18 0.22 0.21 0.12" contype="1" conaffinity="1" condim="6" mass="0.01" friction="1.5 0.04 0.01" solref="0.002 1" solimp="0.98 0.995 0.0005"/>
+                      <geom name="finger_left_travel_stop_collision" type="mesh" mesh="finger_left_travel_stop_collision_mesh" rgba="0.18 0.22 0.21 0.12" contype="1" conaffinity="1" condim="6" mass="0.01" friction="1.5 0.04 0.01" solref="0.002 1" solimp="0.98 0.995 0.0005"/>
                     </body>
 
                     <body name="finger_right_link" pos="0 0 0">
@@ -193,9 +202,11 @@
                       <geom name="finger_right_carriage_visual" type="mesh" mesh="finger_right_carriage_mesh" material="gripper_carriage_grey_mat"/>
                       <geom name="finger_right_travel_stop_visual" type="mesh" mesh="finger_right_travel_stop_mesh" material="gripper_seeed_yellow_mat"/>
                       <geom name="finger_right_crossed_rack_visual" type="mesh" mesh="finger_right_crossed_rack_mesh" material="gripper_rack_metal_mat"/>
-<geom name="finger_right_collision" type="mesh" mesh="finger_right_body_collision_mesh" rgba="0.18 0.22 0.21 0.20" contype="1" conaffinity="1" condim="6" mass="0.01" friction="6.0 0.25 0.04" solref="0.003 1" solimp="0.98 0.995 0.0005"/>
-                      <geom name="finger_right_carriage_collision" type="mesh" mesh="finger_right_carriage_collision_mesh" rgba="0.18 0.22 0.21 0.12" contype="1" conaffinity="1" condim="6" mass="0.01" friction="6.0 0.25 0.04" solref="0.003 1" solimp="0.98 0.995 0.0005"/>
-                      <geom name="finger_right_travel_stop_collision" type="mesh" mesh="finger_right_travel_stop_collision_mesh" rgba="0.18 0.22 0.21 0.12" contype="1" conaffinity="1" condim="6" mass="0.01" friction="6.0 0.25 0.04" solref="0.003 1" solimp="0.98 0.995 0.0005"/>
+                      <geom name="finger_right_front_collision" type="mesh" mesh="finger_right_front_collision_mesh" rgba="0.18 0.22 0.21 0.20" contype="1" conaffinity="1" condim="6" margin="0.00015" mass="0.003" friction="1.5 0.04 0.01" solref="0.002 1" solimp="0.98 0.995 0.0005"/>
+                      <geom name="finger_right_mid_collision" type="mesh" mesh="finger_right_mid_collision_mesh" rgba="0.18 0.22 0.21 0.20" contype="1" conaffinity="1" condim="6" margin="0.00015" mass="0.003" friction="1.5 0.04 0.01" solref="0.002 1" solimp="0.98 0.995 0.0005"/>
+                      <geom name="finger_right_rear_collision" type="mesh" mesh="finger_right_rear_collision_mesh" rgba="0.18 0.22 0.21 0.20" contype="1" conaffinity="1" condim="6" margin="0.00015" mass="0.004" friction="1.5 0.04 0.01" solref="0.002 1" solimp="0.98 0.995 0.0005"/>
+                      <geom name="finger_right_carriage_collision" type="mesh" mesh="finger_right_carriage_collision_mesh" rgba="0.18 0.22 0.21 0.12" contype="1" conaffinity="1" condim="6" mass="0.01" friction="1.5 0.04 0.01" solref="0.002 1" solimp="0.98 0.995 0.0005"/>
+                      <geom name="finger_right_travel_stop_collision" type="mesh" mesh="finger_right_travel_stop_collision_mesh" rgba="0.18 0.22 0.21 0.12" contype="1" conaffinity="1" condim="6" mass="0.01" friction="1.5 0.04 0.01" solref="0.002 1" solimp="0.98 0.995 0.0005"/>
                     </body>
                   </body>
                 </body>
@@ -206,4 +217,11 @@
       </body>
     </body>
   </worldbody>
+
+  <contact>
+    <!-- Adjacent convex pieces share X-cut planes.  Excluding contact between
+         the two finger bodies prevents those internal seams from friction-locking
+         the gripper while preserving finger-to-object contacts. -->
+    <exclude body1="finger_left_link" body2="finger_right_link"/>
+  </contact>
 </mujoco>

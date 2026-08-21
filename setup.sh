@@ -15,6 +15,7 @@ INSTALLED=()
 SKIPPED=()
 MISMATCH=()
 FAILED=()
+LAST_ERROR=''
 
 usage() {
   cat <<'EOF'
@@ -66,7 +67,7 @@ print_group() {
 finish() {
   local status=$?
   if ((status != 0)); then
-    record_failed "setup exited before completion with status ${status}"
+    record_failed "${LAST_ERROR:-setup exited before completion with status ${status}}"
   fi
   print_group 'Installed/updated' "${INSTALLED[@]}"
   print_group 'Already usable; skipped' "${SKIPPED[@]}"
@@ -83,6 +84,13 @@ finish() {
     printf '\nSetup finished with missing items. Fix the failures above, then rerun ./setup.sh.\n'
   fi
 }
+capture_error() {
+  local status="$1"
+  local line="$2"
+  local command="$3"
+  LAST_ERROR="command failed at setup.sh:${line} with status ${status}: ${command}"
+}
+trap 'capture_error "$?" "${LINENO}" "${BASH_COMMAND}"' ERR
 trap finish EXIT
 
 if [[ ! -d "${WS_DIR}/src" || ! -d "${WEB_DIR}/public" ]]; then
@@ -178,15 +186,28 @@ if ((${#MISSING_APT[@]})); then
 fi
 
 log 'Checking runtime versions'
-if have python3; then
-  py_version="$(python3 -c 'import sys; print(".".join(map(str, sys.version_info[:3])))')"
-  if python3 -c 'import sys; raise SystemExit(0 if sys.version_info[:2] in ((3, 12), (3, 10)) else 1)'; then
-    record_skipped "Python ${py_version} compatible"
-  else
-    record_mismatch "expected Python 3.12 or 3.10; found ${py_version}"
+EXPECTED_PYTHON="${PY_SITE#python}"
+PYTHON_BIN=''
+for candidate in "/usr/bin/python${EXPECTED_PYTHON}" /usr/bin/python3 "$(command -v python3 2>/dev/null || true)"; do
+  [[ -n "${candidate}" && -x "${candidate}" ]] || continue
+  if "${candidate}" -c \
+    'import sys; raise SystemExit(0 if ".".join(map(str, sys.version_info[:2])) == sys.argv[1] else 1)' \
+    "${EXPECTED_PYTHON}"; then
+    PYTHON_BIN="${candidate}"
+    break
+  fi
+done
+
+if [[ -n "${PYTHON_BIN}" ]]; then
+  py_version="$("${PYTHON_BIN}" -c 'import sys; print(".".join(map(str, sys.version_info[:3])))')"
+  record_skipped "Python ${py_version} compatible (${PYTHON_BIN})"
+  path_python="$(command -v python3 2>/dev/null || true)"
+  if [[ -n "${path_python}" && "$(readlink -f "${path_python}")" != "$(readlink -f "${PYTHON_BIN}")" ]]; then
+    path_py_version="$("${path_python}" -c 'import sys; print(".".join(map(str, sys.version_info[:3])))' 2>/dev/null || printf unknown)"
+    record_skipped "PATH python3 ${path_py_version} ignored; using ROS-compatible ${PYTHON_BIN}"
   fi
 else
-  record_failed 'python3 command missing'
+  record_failed "Python ${EXPECTED_PYTHON} required for ROS 2 ${ROS_DISTRO}; install python${EXPECTED_PYTHON} and python${EXPECTED_PYTHON}-venv"
 fi
 
 if have node; then
@@ -229,23 +250,46 @@ fi
 if [[ -n "${SDK_DIR}" && -d "${SDK_DIR}/.git" ]]; then
   sdk_head="$(git -C "${SDK_DIR}" rev-parse HEAD 2>/dev/null || true)"
   if [[ "${sdk_head}" == "${SDK_REF}" ]]; then
-    record_skipped "SDK revision ${sdk_head} compatible"
+    record_skipped "SDK revision ${sdk_head} is the validated revision"
+  elif git -C "${SDK_DIR}" merge-base --is-ancestor "${SDK_REF}" "${sdk_head}" 2>/dev/null; then
+    record_mismatch "SDK revision ${sdk_head} is newer than validated ${SDK_REF}; preserving and continuing (warning only)"
+  elif git -C "${SDK_DIR}" merge-base --is-ancestor "${sdk_head}" "${SDK_REF}" 2>/dev/null; then
+    record_mismatch "SDK revision ${sdk_head} is older than validated ${SDK_REF}; preserving and continuing (warning only)"
   else
-    record_mismatch "SDK revision ${sdk_head:-unknown}; validated revision is ${SDK_REF} (existing checkout not changed)"
+    record_mismatch "SDK revision ${sdk_head:-unknown} differs from validated ${SDK_REF}; preserving and continuing (warning only)"
   fi
 fi
 
 log 'Checking project virtual environment'
+VENV_READY=0
 if [[ -x "${VENV_DIR}/bin/python" ]]; then
-  record_skipped "existing virtual environment ${VENV_DIR} preserved"
+  venv_py_version="$("${VENV_DIR}/bin/python" -c 'import sys; print(".".join(map(str, sys.version_info[:3])))' 2>/dev/null || printf unknown)"
+  if "${VENV_DIR}/bin/python" -c \
+    'import sys; raise SystemExit(0 if ".".join(map(str, sys.version_info[:2])) == sys.argv[1] else 1)' \
+    "${EXPECTED_PYTHON}" 2>/dev/null; then
+    record_skipped "existing virtual environment ${VENV_DIR} uses Python ${venv_py_version}"
+    VENV_READY=1
+  elif ((CHECK_ONLY)); then
+    record_failed "virtual environment ${VENV_DIR} uses Python ${venv_py_version}; rerun ./setup.sh to replace it safely"
+  elif [[ -n "${PYTHON_BIN}" ]]; then
+    venv_backup="${VENV_DIR}.python-${venv_py_version}.backup.$(date +%Y%m%d%H%M%S)"
+    mv "${VENV_DIR}" "${venv_backup}"
+    record_installed "incompatible virtual environment preserved at ${venv_backup}"
+    "${PYTHON_BIN}" -m venv "${VENV_DIR}" --system-site-packages
+    record_installed "virtual environment ${VENV_DIR} recreated with Python ${EXPECTED_PYTHON}"
+    VENV_READY=1
+  fi
 elif ((CHECK_ONLY)); then
   record_failed "missing virtual environment ${VENV_DIR}"
+elif [[ -n "${PYTHON_BIN}" ]]; then
+  "${PYTHON_BIN}" -m venv "${VENV_DIR}" --system-site-packages
+  record_installed "virtual environment ${VENV_DIR} created with Python ${EXPECTED_PYTHON}"
+  VENV_READY=1
 else
-  python3 -m venv "${VENV_DIR}" --system-site-packages
-  record_installed "virtual environment ${VENV_DIR}"
+  record_failed "cannot create ${VENV_DIR} without Python ${EXPECTED_PYTHON}"
 fi
 
-if [[ -x "${VENV_DIR}/bin/python" ]]; then
+if ((VENV_READY)); then
   if ((CHECK_ONLY)); then
     :
   else
@@ -332,7 +376,7 @@ else
 fi
 
 log 'Final import checks'
-if [[ -x "${VENV_DIR}/bin/python" && -n "${SDK_DIR}" ]]; then
+if ((VENV_READY)) && [[ -n "${SDK_DIR}" ]]; then
   if PYTHONPATH="${SDK_DIR}:${VENV_DIR}/lib/${PY_SITE}/site-packages:${PYTHONPATH:-}" \
     "${VENV_DIR}/bin/python" -c 'import mujoco, pinocchio, motorbridge, transforms3d, tf_transformations, fastmcp, openai, reBotArm_control_py'; then
     record_skipped 'critical Python and SDK imports pass'
