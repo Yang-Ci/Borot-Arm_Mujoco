@@ -104,6 +104,8 @@ const NS = 'rebotarm';
   const lastSent = new Map();
   const simTargetAngles = new Map();
   const mirrorHoldUntil = new Map();
+  const physicsDragTargets = new Map();
+  let physicsDragHoldUntil = 0;
   const COMMAND_INTERVAL_MS = 45;
  const MIRROR_HOLD_MS = 1800;
   let latestJointPositions = null;
@@ -270,6 +272,18 @@ const NS = 'rebotarm';
     if (!isPhysicsFeedback) updateFeedbackError(next);
 
     if (useForDisplay && (isPhysicsFeedback || els.mirror.checked) && Object.keys(next).length) {
+      let holdStaleDragFrame = false;
+      if (isPhysicsFeedback && physicsDragTargets.size) {
+        const dragTargetReached = [...physicsDragTargets.entries()].every(([name, target]) =>
+          typeof next[name] === 'number' && Math.abs(target - next[name]) < 0.025
+        );
+        if (dragTargetReached || now >= physicsDragHoldUntil) {
+          physicsDragTargets.clear();
+          physicsDragHoldUntil = 0;
+        } else {
+          holdStaleDragFrame = true;
+        }
+      }
       const mirrored = {};
       Object.entries(next).forEach(([name, value]) => {
         // The hardware publishes a single finger travel in /joint_states.  The
@@ -280,7 +294,7 @@ const NS = 'rebotarm';
         const holdUntil = mirrorHoldUntil.get(name) || 0;
         const target = simTargetAngles.get(name);
         const reachedTarget = typeof target === 'number' && Math.abs(target - value) < 0.025;
-        if (isPhysicsFeedback || reachedTarget || now > holdUntil) {
+        if (!holdStaleDragFrame && (isPhysicsFeedback || reachedTarget || now > holdUntil)) {
           mirrorHoldUntil.delete(name);
           mirrored[name] = value;
         }
@@ -354,6 +368,10 @@ const NS = 'rebotarm';
   }
 
   function forwardSimCommand(command) {
+    if (command && command.type === 'execute-current-pose') {
+      void executeCurrentPoseCommand(command);
+      return;
+    }
     if (command && command.type === 'tcp-target') {
       forwardTcpTarget(command);
       return;
@@ -386,6 +404,34 @@ const NS = 'rebotarm';
     client.publishJointCommand(command.name, command.value, { vlim: getVlim() });
   }
 
+  async function executeCurrentPoseCommand(command) {
+    if (!controlAllowed(true)) return;
+    const requested = command && command.joints && typeof command.joints === 'object'
+      ? command.joints
+      : {};
+    const start = getCurrentRosPositions();
+    const goal = JOINT_NAMES.map((name, index) => {
+      const value = Number(requested[name]);
+      return Number.isFinite(value) ? value : start[index];
+    });
+    const label = command.label || t('adv.plan');
+    const points = buildZeroToCurrentPosePoints(start, goal, getTrajectoryDuration());
+    await sendTrajectory(points, label);
+  }
+
+  function buildZeroToCurrentPosePoints(start, goal, segmentDuration) {
+    const duration = clamp(Number(segmentDuration) || 2, 1, 30);
+    const zero = JOINT_NAMES.map(() => 0);
+    const toZero = buildSmoothJointMovePoints(start, zero, duration);
+    const fromZero = buildSmoothJointMovePoints(zero, goal, duration)
+      .slice(1)
+      .map((point) => ({
+        ...point,
+        time_from_start: secondsToRosTime(duration + rosTimeToSeconds(point.time_from_start))
+      }));
+    return [...toZero, ...fromZero];
+  }
+
   function forwardTcpTarget(command) {
     if (!client.connected || !command || !command.target_ros) return;
     const now = performance.now();
@@ -403,12 +449,21 @@ const NS = 'rebotarm';
     if (!names.length) return;
 
     const holdUntil = performance.now() + MIRROR_HOLD_MS;
+    const holdDragPhysics = command.source === 'tcp-drag-commit';
     names.forEach((name) => {
       simTargetAngles.set(name, joints[name]);
       mirrorHoldUntil.set(name, holdUntil);
     });
 
     if (!controlAllowed(false)) return;
+
+    if (holdDragPhysics) {
+      physicsDragTargets.clear();
+      names.forEach((name) => {
+        if (name !== 'gripper') physicsDragTargets.set(name, joints[name]);
+      });
+      physicsDragHoldUntil = holdUntil;
+    }
 
     names.forEach((name) => {
       lastSent.set(name, 0);
@@ -1895,7 +1950,7 @@ const NS = 'rebotarm';
   }
 
   function getTrajectoryDuration() {
-    return clamp(Number(els.trajectoryDuration.value) || 6, 1, 30);
+    return clamp(Number(els.trajectoryDuration.value) || 2, 1, 30);
   }
 
   function secondsToRosTime(seconds) {

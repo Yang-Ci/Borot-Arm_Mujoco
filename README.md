@@ -31,11 +31,11 @@ This repository covers the full software stack: arm ROS 2 interface, real-robot 
 
 | Contents | Location | Description |
 | --- | --- | --- |
-| ROS 2 packages (7) | `reBotArmController_ROS2-main/src/` | msgs, controller, bringup, mujoco, agent |
+| ROS 2 packages (7) | `reBotArm_ros2_DM/src/` | msgs, controller, bringup, mujoco, agent |
 | URDF + STL meshes | `rebotarm_bringup/description/` | Arm model files |
 | MuJoCo models | `rebotarm_mujoco/models/` | STL / kinematics XML |
 | Web frontend | `reBotArm_simulator-DM/` | Three.js + HTML/CSS/JS |
-| Launch scripts | `reBotArmController_ROS2-main/scripts/` | One-click launch |
+| Launch scripts | `reBotArm_ros2_DM/scripts/` | One-click launch |
 
 ### External Dependencies (installed separately)
 
@@ -114,7 +114,7 @@ cd ~/reBot_Arm_Mujoco-DM
 ├─ setup.sh                         Idempotent one-click install and version check
 ├─ rebotarm                         Unified start/stop/status/diagnostic entry
 ├─ requirements.txt                 Python dependency version ranges
-├─ reBotArmController_ROS2-main/    ROS 2 workspace
+├─ reBotArm_ros2_DM/    ROS 2 workspace
 │  ├─ scripts/                      One-click launch scripts
 │  ├─ third_party/                  reBotArm_control_py SDK for fresh installs
 │  ├─ .venv/                        Project Python venv (created by setup.sh)
@@ -174,7 +174,7 @@ sudo chmod 666 /dev/ttyACM*
 Source the environment before all commands (auto-sourced by the unified entry):
 
 ```bash
-cd ~/reBot_Arm_Mujoco-DM/reBotArmController_ROS2-main
+cd ~/reBot_Arm_Mujoco-DM/reBotArm_ros2_DM
 source scripts/source_rebotarm_env.sh
 ```
 
@@ -209,7 +209,7 @@ ros2 service call /rebotarm/safe_home std_srvs/srv/Trigger   # Safe home
 **Terminal 2 — rosbridge:**
 
 ```bash
-cd ~/reBot_Arm_Mujoco-DM/reBotArmController_ROS2-main
+cd ~/reBot_Arm_Mujoco-DM/reBotArm_ros2_DM
 source scripts/source_rebotarm_env.sh
 ros2 launch rosbridge_server rosbridge_websocket_launch.xml port:=9090
 ```
@@ -419,10 +419,10 @@ Confirm the two-step unlock:
 - [Project architecture, MuJoCo & web notes](./PROJECT_ARCHITECTURE_ZH.md)
 - [DM real-robot data link and flow](./DATA_FLOW_ZH.md)
 - [B601-DM user manual](./USER_MANUAL_ZH.md)
-- [ROS 2 workspace readme](./reBotArmController_ROS2-main/README_zh.md)
-- [MuJoCo package readme](./reBotArmController_ROS2-main/src/rebotarm_mujoco/README.md)
+- [ROS 2 workspace readme](./reBotArm_ros2_DM/README_zh.md)
+- [MuJoCo package readme](./reBotArm_ros2_DM/src/rebotarm_mujoco/README.md)
 - [Web console readme](./reBotArm_simulator-DM/README.md)
-- [AI Agent/MCP readme](./reBotArmController_ROS2-main/src/rebotarm_agent/README.md)
+- [AI Agent/MCP readme](./reBotArm_ros2_DM/src/rebotarm_agent/README.md)
 
 ## License
 

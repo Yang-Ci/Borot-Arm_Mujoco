@@ -7,7 +7,7 @@
 | 层级 | 当前路径或地址 |
 | --- | --- |
 | 项目根目录 | `/home/robot/reBot_Arm_Mujoco-DM` |
-| ROS 2 工作空间 | `/home/robot/reBot_Arm_Mujoco-DM/reBotArmController_ROS2-main` |
+| ROS 2 工作空间 | `/home/robot/reBot_Arm_Mujoco-DM/reBotArm_ros2_DM` |
 | 网页控制台 | `/home/robot/reBot_Arm_Mujoco-DM/reBotArm_simulator-DM` |
 | Python SDK | `/home/robot/reBotArm_control_py` |
 | DM 电机配置 | `/home/robot/reBotArm_control_py/config/rebotarm_dm.yaml` |
@@ -72,7 +72,7 @@ flowchart LR
 DM 真机控制器使用以下命令启动：
 
 ```bash
-cd ~/reBot_Arm_Mujoco-DM/reBotArmController_ROS2-main
+cd ~/reBot_Arm_Mujoco-DM/reBotArm_ros2_DM
 source scripts/source_rebotarm_env.sh
 ros2 launch rebotarm_bringup bringup.launch.py channel:=/dev/ttyACM0
 ```

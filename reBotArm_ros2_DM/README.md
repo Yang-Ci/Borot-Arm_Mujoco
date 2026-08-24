@@ -21,7 +21,7 @@ scripts/start_rebotarm_all.sh
 ### GUI 控制与重力补偿
 
 ```bash
-cd reBotArmController_ROS2-main
+cd reBotArm_ros2_DM
 ./scripts/start_joint_slider_gui.sh
 ```
 
@@ -42,7 +42,7 @@ controller。
 进入 ROS2 工作区后直接运行需要的主入口：
 
 ```bash
-cd reBotArmController_ROS2-main
+cd reBotArm_ros2_DM
 chmod +x scripts/*.sh
 ./scripts/start_joint_slider_gui.sh
 ```
@@ -50,7 +50,7 @@ chmod +x scripts/*.sh
 如果工作区还没有编译：
 
 ```bash
-cd reBotArmController_ROS2-main
+cd reBotArm_ros2_DM
 colcon build
 source install/setup.bash
 chmod +x scripts/*.sh

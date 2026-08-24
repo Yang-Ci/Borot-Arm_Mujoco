@@ -105,7 +105,7 @@ npm start
 **终端操作（录制）**：
 
 ```bash
-cd ~/reBot_Arm_Mujoco-DM/reBotArmController_ROS2-main
+cd ~/reBot_Arm_Mujoco-DM/reBotArm_ros2_DM
 source scripts/source_rebotarm_env.sh
 
 # 终端 1：Fake Driver
@@ -226,7 +226,7 @@ ros2 launch rebotarm_agent rebotarm_mcp.launch.py motion_mode:=allow
 **终端操作（录制）**：
 
 ```bash
-cd ~/reBot_Arm_Mujoco-DM/reBotArmController_ROS2-main
+cd ~/reBot_Arm_Mujoco-DM/reBotArm_ros2_DM
 ./scripts/start_rebot_mujoco_all.sh
 ```
 

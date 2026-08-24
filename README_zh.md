@@ -31,11 +31,11 @@
 
 | 内容 | 位置 | 说明 |
 | --- | --- | --- |
-| ROS 2 包（7 个） | `reBotArmController_ROS2-main/src/` | msgs、controller、bringup、mujoco、agent |
+| ROS 2 包（7 个） | `reBotArm_ros2_DM/src/` | msgs、controller、bringup、mujoco、agent |
 | URDF + STL 网格 | `rebotarm_bringup/description/` | 机械臂模型文件 |
 | MuJoCo 模型 | `rebotarm_mujoco/models/` | STL/运动学 XML |
 | 网页前端 | `reBotArm_simulator-DM/` | Three.js + HTML/CSS/JS |
-| 启动脚本 | `reBotArmController_ROS2-main/scripts/` | 一键启动 |
+| 启动脚本 | `reBotArm_ros2_DM/scripts/` | 一键启动 |
 
 ### 外部依赖（需单独安装）
 
@@ -114,7 +114,7 @@ cd ~/reBot_Arm_Mujoco-DM
 ├─ setup.sh                         可重复执行的一键安装与版本检查
 ├─ rebotarm                         统一启动、停止、状态和诊断入口
 ├─ requirements.txt                 Python 依赖兼容版本范围
-├─ reBotArmController_ROS2-main/    ROS 2 工作空间
+├─ reBotArm_ros2_DM/    ROS 2 工作空间
 │  ├─ scripts/                      一键启动脚本
 │  ├─ third_party/                  新安装时的 reBotArm_control_py SDK
 │  ├─ .venv/                        项目 Python 虚拟环境（由 setup.sh 创建）
@@ -174,7 +174,7 @@ sudo chmod 666 /dev/ttyACM*
 所有命令前先 source 环境（统一启动入口自启动）：
 
 ```bash
-cd ~/reBot_Arm_Mujoco-DM/reBotArmController_ROS2-main
+cd ~/reBot_Arm_Mujoco-DM/reBotArm_ros2_DM
 source scripts/source_rebotarm_env.sh
 ```
 
@@ -209,7 +209,7 @@ ros2 service call /rebotarm/safe_home std_srvs/srv/Trigger   # 安全回零
 **Terminal 2 — rosbridge：**
 
 ```bash
-cd ~/reBot_Arm_Mujoco-DM/reBotArmController_ROS2-main
+cd ~/reBot_Arm_Mujoco-DM/reBotArm_ros2_DM
 source scripts/source_rebotarm_env.sh
 ros2 launch rosbridge_server rosbridge_websocket_launch.xml port:=9090
 ```
@@ -414,10 +414,10 @@ sed -i 's/include-system-site-packages = false/include-system-site-packages = tr
 - [项目架构、MuJoCo 与网页说明](./PROJECT_ARCHITECTURE_ZH.md)
 - [DM 真机数据链路与数据流向](./DATA_FLOW_ZH.md)
 - [B601-DM 用户使用手册](./USER_MANUAL_ZH.md)
-- [ROS 2 工作空间说明](./reBotArmController_ROS2-main/README_zh.md)
-- [MuJoCo 包说明](./reBotArmController_ROS2-main/src/rebotarm_mujoco/README.md)
+- [ROS 2 工作空间说明](./reBotArm_ros2_DM/README_zh.md)
+- [MuJoCo 包说明](./reBotArm_ros2_DM/src/rebotarm_mujoco/README.md)
 - [网页控制台说明](./reBotArm_simulator-DM/README.md)
-- [AI Agent/MCP 说明](./reBotArmController_ROS2-main/src/rebotarm_agent/README.md)
+- [AI Agent/MCP 说明](./reBotArm_ros2_DM/src/rebotarm_agent/README.md)
 
 ## License
 

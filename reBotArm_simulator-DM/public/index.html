@@ -201,8 +201,8 @@
           <input id="ros-vlim" type="number" min="0.05" max="3" step="0.05" value="1.2">
         </label>
         <label class="field-row">
-          <span data-i18n="safety.trajDuration">轨迹总时长 s</span>
-          <input id="ros-trajectory-duration" type="number" min="1" max="30" step="0.5" value="6">
+          <span data-i18n="safety.trajDuration">单段轨迹时长 s</span>
+          <input id="ros-trajectory-duration" type="number" min="1" max="30" step="0.5" value="2">
         </label>
       </div>
 
@@ -308,7 +308,7 @@
       <div class="section">
         <h3 data-i18n="adv.title">高级控制</h3>
         <button class="primary-btn" id="play-path" data-i18n="adv.play">循环播放取放路径</button>
-        <button class="secondary-btn" id="plan-trajectory" data-i18n="adv.plan">规划到当前姿态</button>
+        <button class="secondary-btn" id="plan-trajectory" data-i18n="adv.plan">从零点执行当前姿态</button>
         <button class="secondary-btn" id="toggle-drag" data-i18n="adv.drag">启用 TCP 拖拽</button>
         <button class="secondary-btn" id="stop-path" data-i18n="adv.stop">停止播放/退出拖拽</button>
       </div>

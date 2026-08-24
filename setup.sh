@@ -2,7 +2,7 @@
 set -Eeuo pipefail
 
 ROOT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
-WS_DIR="${ROOT_DIR}/reBotArmController_ROS2-main"
+WS_DIR="${ROOT_DIR}/reBotArm_ros2_DM"
 WEB_DIR="${ROOT_DIR}/reBotArm_simulator-DM"
 VENV_DIR="${WS_DIR}/.venv"
 SDK_DEFAULT_DIR="${WS_DIR}/third_party/reBotArm_control_py"

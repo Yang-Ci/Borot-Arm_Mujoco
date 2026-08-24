@@ -1,4 +1,4 @@
-# reBot-DevArm 上色版（独立可分享包）
+# ReBot Arm DM 上色版（独立可分享包）
 
 本文件夹是一份**自包含**的上色版机械臂资源。URDF 内的 mesh 引用均为相对路径（`meshes/...`），任何支持相对路径的加载器（three.js URDFLoader、RViz、MuJoCo、PyBullet）均可直接使用。
 
@@ -6,7 +6,7 @@
 
 ```
 description/
-├── reBot-DevArm_colored.urdf   # 唯一上色 URDF（visual 按材质分件 + 顶层 <material>）
+├── ReBot_Arm_DM.urdf           # 唯一上色 URDF（visual 按材质分件 + 顶层 <material>）
 └── meshes/
     ├── colored_*_<material>.stl # 23 个按材质拆分的手臂分件 STL（visual）
     ├── split_meshes/...         # 夹爪分件 STL（visual）
@@ -20,7 +20,7 @@ description/
 
 | 材质名 | RGBA | 实体 |
 | --- | --- | --- |
-| `anodized_grey` | 0.62 0.63 0.61 | 铝结构件（CNC 哑光银灰，螺丝孔所在件）|
+| `anodized_grey` | 0.720 0.760 0.730 | 铝结构件（CNC 银色，螺丝孔所在件）|
 | `hardware_black` | 0.055 0.065 0.060 | 螺丝/连接件（黑）|
 | `matte_black` | 0.14 0.16 0.15 | 主体壳体（哑光黑）|
 | `silver_trim` | 0.72 0.76 0.73 | 银边装饰 |
@@ -39,7 +39,7 @@ description/
 ```js
 const loader = new URDFLoader();
 // basePath 指向本 description 文件夹，或让 URDF 相对 URL 可用
-loader.load('reBot-DevArm_colored.urdf', robot => scene.add(robot));
+loader.load('ReBot_Arm_DM.urdf', robot => scene.add(robot));
 ```
 
 注意：URDFLoader 会给每个材质设 `material.name = <material name>`，可用它表映射 metalness/roughness 光泽感：
@@ -63,7 +63,7 @@ loader.load('reBot-DevArm_colored.urdf', robot => scene.add(robot));
 用 `load_model_from_path`（mujoco>=3.x）直接加载 URDF：
 ```python
 import mujoco
-m = mujoco.MjModel.from_xml_path("reBot-DevArm_colored.urdf")  # 需编译 URDF 支持
+m = mujoco.MjModel.from_xml_path("ReBot_Arm_DM.urdf")  # 需编译 URDF 支持
 ```
 或用本仓库的 MJCF 版 `rebotarm_b601_colored.xml`（同一颜色体系，带光泽/金属度参数）。
 
@@ -73,7 +73,7 @@ m = mujoco.MjModel.from_xml_path("reBot-DevArm_colored.urdf")  # 需编译 URDF 
 
 ## 来源
 
-- 从 reBotArm 工程的 `reBotArmController_ROS2-main/src/rebotarm_bringup/description/` 复制而来
+- 从 reBotArm 工程的 `reBotArm_ros2_DM/src/rebotarm_bringup/description/` 复制而来
 - web 模拟器：`reBotArm_simulator-DM/`（server.js 已指向该 URDF）
 - 颜色加工工具：根目录 `scripts/extract_dae_colors.py` / `scripts/unify_arm_urdf.py`（本文件是它们的输出）
 

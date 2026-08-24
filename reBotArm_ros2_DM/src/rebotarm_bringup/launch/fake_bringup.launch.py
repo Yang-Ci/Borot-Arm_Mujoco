@@ -15,7 +15,7 @@ def generate_launch_description():
     use_rviz = LaunchConfiguration("use_rviz")
 
     urdf_file = PathJoinSubstitution(
-        [bringup_share, "description", "urdf", "reBot-DevArm_colored.urdf"]
+        [bringup_share, "description", "urdf", "ReBot_Arm_DM.urdf"]
     )
     rviz_config = PathJoinSubstitution([bringup_share, "rviz", "rebotarm.rviz"])
     robot_description = ParameterValue(Command(["cat ", urdf_file]), value_type=str)

@@ -21,7 +21,7 @@ ROOT = Path(__file__).resolve().parents[1]
 URDF_DIR = ROOT / "src" / "rebotarm_bringup" / "description" / "urdf"
 MESH_DIR = ROOT / "src" / "rebotarm_bringup" / "description" / "meshes"
 
-URDF = URDF_DIR / "reBot-DevArm_colored.urdf"
+URDF = URDF_DIR / "ReBot_Arm_DM.urdf"
 
 NS = {"c": "http://www.collada.org/2005/11/COLLADASchema"}
 
@@ -39,9 +39,15 @@ ARM_MATERIALS = {
 EYE_COLOURS = {
     "matte_black": (0.14, 0.16, 0.15, 1.0),
     "hardware_black": (0.055, 0.065, 0.06, 1.0),
-    "anodized_grey": (0.5, 0.54, 0.51, 1.0),
+    "anodized_grey": (0.72, 0.76, 0.73, 1.0),
     "seeed_yellow": (0.73, 0.84, 0.12, 1.0),
     "silver_trim": (0.72, 0.76, 0.73, 1.0),
+}
+
+MATERIAL_OVERRIDES = {
+    # The yellow-labelled split mesh is the cover above joint 5; the real
+    # production part is black. Keep the mesh filename but correct its finish.
+    ("link4", "seeed_yellow"): "matte_black",
 }
 
 
@@ -59,13 +65,14 @@ def material_block(name: str) -> str:
 
 
 def visual_block(link: str, material: str) -> str:
+    display_material = MATERIAL_OVERRIDES.get((link, material), material)
     return (
         f'    <visual name="{link}_{material}">\n'
         '      <origin xyz="0 0 0" rpy="0 0 0" />\n'
         "      <geometry>\n"
         f'        <mesh filename="package://rebotarm_bringup/description/meshes/colored_{link}_{material}.stl" />\n'
         "      </geometry>\n"
-        f'      <material name="{material}" />\n'
+        f'      <material name="{display_material}" />\n'
         "    </visual>"
     )
 
