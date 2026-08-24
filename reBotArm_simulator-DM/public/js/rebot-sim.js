@@ -23,21 +23,21 @@ const t = window.rebotI18n ? window.rebotI18n.t : (k) => k;
   );
   const THREE_TO_ROS_FRAME = ROS_TO_THREE_FRAME.clone().invert();
 
-  // Real-robot finishes keyed by the URDF <material name>.  Colours come from
-  // the URDF itself; gloss comes from the same metallic/roughness values the
-  // MJCF (rebotarm_b601_colored.xml) uses, so all three viewers stay in sync.
+  // Real-robot finishes keyed by the URDF <material name>. The optional Web
+  // colour compensates for ACES rendering without an environment map; it
+  // preserves the shared palette while keeping silver and black distinguishable.
   const URDF_FINISH_PARAMS = {
-matte_black: { roughness: 0.48, metalness: 0.48 },
-    hardware_black: { roughness: 0.20, metalness: 0.82 },
-    anodized_grey: { roughness: 0.34, metalness: 0.72 },
+    matte_black: { color: 0x111312, roughness: 0.72, metalness: 0.02 },
+    hardware_black: { color: 0x050706, roughness: 0.38, metalness: 0.35 },
+    anodized_grey: { color: 0xd4d8d4, roughness: 0.36, metalness: 0.34 },
     seeed_yellow: { roughness: 0.34, metalness: 0.18 },
-    silver_trim: { roughness: 0.18, metalness: 0.88 },
-    gripper_finger_black: { roughness: 0.48, metalness: 0.48 },
+    silver_trim: { color: 0xe0e3df, roughness: 0.28, metalness: 0.38 },
+    gripper_finger_black: { color: 0x111312, roughness: 0.72, metalness: 0.02 },
     gripper_carriage_grey: { roughness: 0.38, metalness: 0.62 },
-    gripper_rack_metal: { roughness: 0.18, metalness: 0.88 },
+    gripper_rack_metal: { color: 0xd4d8d4, roughness: 0.30, metalness: 0.38 },
     gripper_seeed_yellow: { roughness: 0.34, metalness: 0.18 },
-    gripper_hardware_black: { roughness: 0.20, metalness: 0.82 },
-    gripper_base_metal: { roughness: 0.18, metalness: 0.88 }
+    gripper_hardware_black: { color: 0x050706, roughness: 0.38, metalness: 0.35 },
+    gripper_base_metal: { color: 0xd4d8d4, roughness: 0.30, metalness: 0.38 }
   };
   const GRIPPER_BASE_FINISH_GROUPS = [[2, 2338], [2, 2212], [2, 2184], [5, 2628], [3, 2484]];
   const GRIPPER_FINGER_FACE_RANGES = {
@@ -73,6 +73,7 @@ matte_black: { roughness: 0.48, metalness: 0.48 },
   let robot;
   let robotFrame;
   let ghostRobot;
+  let ghostDisplayActive = false;
   let gripperGroup;
   let ghostGripperGroup;
   let envelopeGroup;
@@ -101,6 +102,7 @@ matte_black: { roughness: 0.48, metalness: 0.48 },
   let dragSettling = false;
   let dragSettleStart = 0;
   let dragSettleLastTime = 0;
+  let dragCommandAngles = null;
   const DRAG_SETTLE_TIMEOUT_MS = 1400;
   const DRAG_SETTLE_TARGET_ERROR = 0.002;
   let teachingRecording = false;
@@ -198,8 +200,8 @@ matte_black: { roughness: 0.48, metalness: 0.48 },
 
   function setupScene() {
     scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x070a08);
-    scene.fog = new THREE.Fog(0x070a08, 1.8, 5.2);
+    scene.background = new THREE.Color(0x111211);
+    scene.fog = new THREE.Fog(0x111211, 1.8, 5.2);
 
     camera = new THREE.PerspectiveCamera(48, getAspect(), 0.01, 20);
     resetCamera();
@@ -211,7 +213,7 @@ matte_black: { roughness: 0.48, metalness: 0.48 },
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     renderer.outputColorSpace = THREE.SRGBColorSpace;
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.12;
+    renderer.toneMappingExposure = 0.98;
     els.host.appendChild(renderer.domElement);
 
     controls = createOrbit(camera, renderer.domElement, new THREE.Vector3(0.18, 0.2, 0));
@@ -250,9 +252,9 @@ matte_black: { roughness: 0.48, metalness: 0.48 },
   }
 
   function setupLights() {
-    scene.add(new THREE.HemisphereLight(0xfff8e8, 0x141613, 1.08));
+    scene.add(new THREE.HemisphereLight(0xffffff, 0x1c1c1c, 0.78));
 
-    const key = new THREE.DirectionalLight(0xfff3dc, 1.95);
+    const key = new THREE.DirectionalLight(0xfffbf2, 1.45);
     key.position.set(1.4, 2.2, 1.2);
     key.castShadow = true;
     key.shadow.mapSize.set(2048, 2048);
@@ -264,11 +266,11 @@ matte_black: { roughness: 0.48, metalness: 0.48 },
     key.shadow.camera.bottom = -1.4;
     scene.add(key);
 
-    const side = new THREE.DirectionalLight(0xdde8e2, 0.38);
+    const side = new THREE.DirectionalLight(0xe8edff, 0.28);
     side.position.set(-1, 0.6, -1.2);
     scene.add(side);
 
-    const rim = new THREE.DirectionalLight(0xd8fff0, 0.72);
+    const rim = new THREE.DirectionalLight(0xffffff, 0.38);
     rim.position.set(-0.8, 1.5, 1.8);
     scene.add(rim);
   }
@@ -653,15 +655,14 @@ matte_black: { roughness: 0.48, metalness: 0.48 },
         return;
       }
 
-      // Real robot: colours come from the URDF <material> definitions; gloss
-      // comes from URDF_FINISH_PARAMS keyed by the same material name, so the
-      // web view matches the RViz and MuJoCo renderings.
+      // Start from the shared URDF material, then apply the Web-only finish
+      // compensation keyed by that same material name.
       const sourceMaterial = Array.isArray(child.material) ? child.material[0] : child.material;
       const finishParams = (sourceMaterial && sourceMaterial.name && URDF_FINISH_PARAMS[sourceMaterial.name])
         || (sourceMaterial && URDF_FINISH_PARAMS[linkFinishName(child)]);
       if (finishParams) {
         child.material = new THREE.MeshStandardMaterial({
-          color: sourceMaterial.color || 0xcccccc,
+          color: finishParams.color ?? sourceMaterial.color ?? 0xcccccc,
           roughness: finishParams.roughness,
           metalness: finishParams.metalness,
           side: THREE.DoubleSide
@@ -684,8 +685,15 @@ matte_black: { roughness: 0.48, metalness: 0.48 },
     ghostRobot = robot.clone(true);
     styleRobot(ghostRobot, true);
     ghostGripperGroup = ghostRobot.getObjectByName('sim_gripper');
-    ghostRobot.visible = document.getElementById('toggle-ghost').checked;
+    ghostRobot.visible = false;
     robotFrame.add(ghostRobot);
+  }
+
+  function setGhostDisplay(active) {
+    ghostDisplayActive = Boolean(active);
+    if (!ghostRobot) return;
+    const toggle = document.getElementById('toggle-ghost');
+    ghostRobot.visible = ghostDisplayActive && (!toggle || toggle.checked);
   }
 
   async function attachGripperVisual(root, ghost) {
@@ -925,7 +933,7 @@ matte_black: { roughness: 0.48, metalness: 0.48 },
       envelopeGroup.visible = event.target.checked;
     });
     document.getElementById('toggle-ghost').addEventListener('change', (event) => {
-      if (ghostRobot) ghostRobot.visible = event.target.checked;
+      if (ghostRobot) ghostRobot.visible = ghostDisplayActive && event.target.checked;
       if (targetGhost) targetGhost.visible = false;
     });
   }
@@ -1041,6 +1049,7 @@ matte_black: { roughness: 0.48, metalness: 0.48 },
     moveStart = performance.now();
     moveDuration = Math.max(duration || 850, 1);
     updateGhostTarget(nextAngles);
+    setGhostDisplay(true);
     if (options && options.emitBatch) {
       emitJointBatch(nextAngles, options.source || 'trajectory-target', options.label || '');
     }
@@ -1055,7 +1064,10 @@ matte_black: { roughness: 0.48, metalness: 0.48 },
       const end = targetAngles[joint.name] ?? start;
       setJoint(joint.name, start + (end - start) * eased, false, { source: 'trajectory', emit: false });
     });
-    if (u >= 1) moveStart = 0;
+    if (u >= 1) {
+      moveStart = 0;
+      setGhostDisplay(false);
+    }
   }
 
   function updateGhostTarget(angles) {
@@ -1082,24 +1094,19 @@ matte_black: { roughness: 0.48, metalness: 0.48 },
     stopPath();
     draggingTcp = false;
     dragSettling = false;
-    const destination = { ...currentAngles };
-    const readyPreset = presets.ready;
-    const readyAngles = {};
-
-    jointDefs.forEach((joint, index) => {
-      const raw = readyPreset.angles[index] || 0;
-      readyAngles[joint.name] = clamp(joint.unit === 'm' ? raw / 1000 : raw * DEG, joint.min, joint.max);
-      setJoint(joint.name, readyAngles[joint.name], false, { source: 'ros' });
+    setGhostDisplay(false);
+    const joints = {};
+    jointDefs.forEach((joint) => {
+      if (joint.name !== 'gripper') joints[joint.name] = currentAngles[joint.name] ?? 0;
     });
-
-    syncGhostToRobot();
-    updateGhostTarget(destination);
-    moveToAngles(destination, 1200, {
-      source: 'plan-current',
+    emitCommand({
+      type: 'execute-current-pose',
+      joints,
+      source: 'current-pose-command',
       label: t('adv.plan'),
-      emitBatch: true
+      stamp: performance.now()
     });
-    setDragStatus(t('sim.generatedReady'));
+    setDragStatus(t('sim.currentPoseRequested'));
   }
 
   function toggleDragMode() {
@@ -1107,6 +1114,8 @@ matte_black: { roughness: 0.48, metalness: 0.48 },
     draggingTcp = false;
     dragSettling = false;
     dragLastTime = 0;
+    dragCommandAngles = null;
+    setGhostDisplay(false);
 
     if (els.toggleDrag) {
       els.toggleDrag.textContent = dragMode ? t('sim.exitDrag') : t('adv.drag');
@@ -1136,12 +1145,14 @@ matte_black: { roughness: 0.48, metalness: 0.48 },
     event.preventDefault();
     event.stopPropagation();
     draggingTcp = true;
+    setGhostDisplay(false);
     dragSettling = false;
     dragTargetClamped = false;
     stopPath();
     moveStart = 0;
     dragPointerId = event.pointerId;
     dragLastTime = performance.now();
+    dragCommandAngles = { ...currentAngles };
     dragPlane = createDragPlane();
     recordTeachingWaypoint(true);
     if (els.dragMarker) {
@@ -1172,6 +1183,7 @@ matte_black: { roughness: 0.48, metalness: 0.48 },
     for (let i = 0; i < substeps; i += 1) {
       result = IKSolver.servoStep(dragTarget, dt / substeps);
     }
+    if (result) dragCommandAngles = { ...currentAngles };
 
     syncGhostToRobot();
     recordTeachingWaypoint(false);
@@ -1204,9 +1216,11 @@ matte_black: { roughness: 0.48, metalness: 0.48 },
     if (dragSettling) return;
     dragTargetClamped = false;
     const tcp = getTcpPosition(robot);
-   if (tcp) {
+    if (tcp) {
       setDragStatus(t('sim.doneMm', { mm: (tcp.distanceTo(dragTarget) * 1000).toFixed(1) }));
     }
+    commitTcpDragTarget();
+    setGhostDisplay(false);
   }
 
   function updateDragMarker() {
@@ -1236,6 +1250,7 @@ matte_black: { roughness: 0.48, metalness: 0.48 },
     for (let i = 0; i < substeps; i += 1) {
       result = IKSolver.servoStep(dragTarget, dt / substeps, { source: 'drag-settle' });
     }
+    if (result) dragCommandAngles = { ...currentAngles };
 
     syncGhostToRobot();
     recordTeachingWaypoint(false);
@@ -1251,11 +1266,15 @@ matte_black: { roughness: 0.48, metalness: 0.48 },
       dragTargetClamped = false;
      updateDragErrorLine();
       setDragStatus(t('sim.doneMm', { mm: (error * 1000).toFixed(1) }));
+      commitTcpDragTarget();
+      setGhostDisplay(false);
     } else if (elapsed >= DRAG_SETTLE_TIMEOUT_MS) {
       dragSettling = false;
       dragTargetClamped = false;
       updateDragErrorLine();
       setDragStatus(t('sim.bestEffortMm', { mm: (error * 1000).toFixed(1) }));
+      commitTcpDragTarget();
+      setGhostDisplay(false);
     } else {
       setDragStatus(t('sim.converging', { mm: (error * 1000).toFixed(1) }));
     }
@@ -1266,6 +1285,17 @@ matte_black: { roughness: 0.48, metalness: 0.48 },
     const normal = new THREE.Vector3();
     camera.getWorldDirection(normal);
     return new THREE.Plane().setFromNormalAndCoplanarPoint(normal, tcp);
+  }
+
+  function commitTcpDragTarget() {
+    const finalAngles = dragCommandAngles
+      ? { ...dragCommandAngles }
+      : { ...currentAngles };
+    // TCP IK only controls the arm. Always publish the exact endpoint once on
+    // pointer-up because the streamed joint commands are rate-limited.
+    delete finalAngles.gripper;
+    emitJointBatch(finalAngles, 'tcp-drag-commit', 'TCP 拖拽');
+    dragCommandAngles = null;
   }
 
   function screenToDragPlane(clientX, clientY, plane) {

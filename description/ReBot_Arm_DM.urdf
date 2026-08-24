@@ -1,5 +1,5 @@
 ﻿<?xml version='1.0' encoding='utf-8'?>
-<robot name="reBot-DevArm_colored">
+<robot name="ReBot_Arm_DM">
   <material name="gripper_finger_black">
     <color rgba="0.090 0.106 0.102 1" />
   </material>
@@ -200,7 +200,7 @@
       <geometry>
         <mesh filename="meshes/colored_link4_seeed_yellow.stl" />
       </geometry>
-      <material name="seeed_yellow" />
+      <material name="matte_black" />
     </visual>
     <visual name="link4_matte_black">
       <origin xyz="0 0 0" rpy="0 0 0" />
@@ -440,7 +440,7 @@
     <mimic joint="finger_left" multiplier="-1" offset="0" />
   </joint>
   <material name="anodized_grey">
-    <color rgba="0.62 0.63 0.61 1" />
+    <color rgba="0.720 0.760 0.730 1" />
   </material>
   <material name="silver_trim">
     <color rgba="0.72 0.76 0.73 1" />

@@ -21,9 +21,9 @@
 | `setup.sh` | 增量安装和版本检查 |
 | `rebotarm` | 启动、停止、状态和诊断入口 |
 | `requirements.txt` | Python 依赖兼容范围 |
-| `reBotArmController_ROS2-main/` | ROS 2 工作空间 |
+| `reBotArm_ros2_DM/` | ROS 2 工作空间 |
 | `reBotArm_simulator-DM/` | 网页控制台 |
-| `reBotArmController_ROS2-main/third_party/reBotArm_control_py/` | 新安装时的默认 SDK 位置 |
+| `reBotArm_ros2_DM/third_party/reBotArm_control_py/` | 新安装时的默认 SDK 位置 |
 
 ## 2. 支持环境
 
@@ -182,7 +182,7 @@ Git / Curl / 编译工具
 Python 依赖安装在：
 
 ```text
-reBotArmController_ROS2-main/.venv
+reBotArm_ros2_DM/.venv
 ```
 
 包括：
@@ -197,7 +197,7 @@ tornado, psutil, fastmcp, openai
 新用户默认 SDK 路径：
 
 ```text
-reBot_Arm_Mujoco-DM/reBotArmController_ROS2-main/third_party/reBotArm_control_py
+reBot_Arm_Mujoco-DM/reBotArm_ros2_DM/third_party/reBotArm_control_py
 ```
 
 如果已经存在以下 SDK，安装器会优先保留：
@@ -208,8 +208,8 @@ reBot_Arm_Mujoco-DM/reBotArmController_ROS2-main/third_party/reBotArm_control_py
 
 当前控制器会按顺序搜索：
 
-1. `reBotArmController_ROS2-main/third_party/reBotArm_control_py`；
-2. `reBotArmController_ROS2-main/sdk/reBotArm_control_py`；
+1. `reBotArm_ros2_DM/third_party/reBotArm_control_py`；
+2. `reBotArm_ros2_DM/sdk/reBotArm_control_py`；
 3. `~/reBotArm_control_py`；
 4. `~/seeed/cameraws/sdk/reBotArm_control_py`。
 
@@ -342,7 +342,7 @@ cd ~/reBot_Arm_Mujoco-DM
 读取一次关节状态：
 
 ```bash
-cd ~/reBot_Arm_Mujoco-DM/reBotArmController_ROS2-main
+cd ~/reBot_Arm_Mujoco-DM/reBotArm_ros2_DM
 source scripts/source_rebotarm_env.sh
 ros2 topic echo /rebotarm/joint_states --once
 ```
@@ -522,7 +522,7 @@ git pull
 只重新编译 ROS 工作空间：
 
 ```bash
-cd ~/reBot_Arm_Mujoco-DM/reBotArmController_ROS2-main
+cd ~/reBot_Arm_Mujoco-DM/reBotArm_ros2_DM
 source scripts/source_rebotarm_env.sh
 colcon build --symlink-install
 ```
@@ -662,7 +662,7 @@ fuser -v /dev/ttyACM0
 ./rebotarm stop
 
 # ROS 环境
-cd reBotArmController_ROS2-main
+cd reBotArm_ros2_DM
 source scripts/source_rebotarm_env.sh
 
 # 状态反馈
@@ -681,7 +681,7 @@ fuser -v /dev/ttyACM0
 - [项目总 README](./README.md)
 - [DM 数据链路说明](./DATA_FLOW_ZH.md)
 - [项目架构说明](./PROJECT_ARCHITECTURE_ZH.md)
-- [ROS 2 工作空间说明](./reBotArmController_ROS2-main/README_zh.md)
-- [MuJoCo 包说明](./reBotArmController_ROS2-main/src/rebotarm_mujoco/README.md)
+- [ROS 2 工作空间说明](./reBotArm_ros2_DM/README_zh.md)
+- [MuJoCo 包说明](./reBotArm_ros2_DM/src/rebotarm_mujoco/README.md)
 - [网页控制台说明](./reBotArm_simulator-DM/README.md)
-- [Agent/MCP 说明](./reBotArmController_ROS2-main/src/rebotarm_agent/README.md)
+- [Agent/MCP 说明](./reBotArm_ros2_DM/src/rebotarm_agent/README.md)

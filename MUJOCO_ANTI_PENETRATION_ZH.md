@@ -39,15 +39,15 @@
 
 ## 主要文件
 
-- `reBotArmController_ROS2-main/src/rebotarm_mujoco/models/rebotarm_b601_colored.xml`
-- `reBotArmController_ROS2-main/src/rebotarm_bringup/description/meshes/*_finger_{front,mid,rear}.stl`
-- `reBotArmController_ROS2-main/src/rebotarm_agent/rebotarm_agent/rebotarm_mcp_server.py`
+- `reBotArm_ros2_DM/src/rebotarm_mujoco/models/rebotarm_b601_colored.xml`
+- `reBotArm_ros2_DM/src/rebotarm_bringup/description/meshes/*_finger_{front,mid,rear}.stl`
+- `reBotArm_ros2_DM/src/rebotarm_agent/rebotarm_agent/rebotarm_mcp_server.py`
 - `reBotArm_simulator-DM/public/js/ros/rebot-ros-ui.js`
 
 修改后重新构建并重启：
 
 ```bash
-cd reBotArmController_ROS2-main
+cd reBotArm_ros2_DM
 source /opt/ros/jazzy/setup.bash
 colcon build --packages-select rebotarm_mujoco rebotarm_agent
 ./scripts/start_rebot_mujoco_all.sh

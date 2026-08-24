@@ -6,7 +6,7 @@ version is read-only from the robot side: it does not command real hardware.
 ## Run
 
 ```bash
-cd ~/reBotArmController_ROS2-main
+cd ~/reBotArm_ros2_DM
 source scripts/source_rebotarm_env.sh
 colcon build --symlink-install --packages-select rebotarm_mujoco
 source install/setup.bash

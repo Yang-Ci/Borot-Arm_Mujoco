@@ -95,7 +95,7 @@ On Ubuntu 24.04 + ROS2 Jazzy, start the ROS side:
 
 ```bash
 source /opt/ros/jazzy/setup.bash
-cd ~/reBotArmController_ROS2-main
+cd ~/reBotArm_ros2_DM
 colcon build --symlink-install
 source install/setup.bash
 ros2 launch rebotarm_bringup fake_bringup.launch.py
@@ -105,7 +105,7 @@ In another Ubuntu terminal, start rosbridge:
 
 ```bash
 source /opt/ros/jazzy/setup.bash
-source ~/reBotArmController_ROS2-main/install/setup.bash
+source ~/reBotArm_ros2_DM/install/setup.bash
 ros2 launch rosbridge_server rosbridge_websocket_launch.xml port:=9090 address:=0.0.0.0
 ```
 
@@ -114,8 +114,8 @@ From Windows, open the simulator and click `连接 ROS`. Keep `允许网页向�
 The simulator reads the ROS2 model from:
 
 ```text
-../reBotArmController_ROS2-main/src/rebotarm_bringup/description/urdf/reBot-DevArm_fixend.urdf
-../reBotArmController_ROS2-main/src/rebotarm_bringup/description/meshes
+../reBotArm_ros2_DM/src/rebotarm_bringup/description/urdf/ReBot_Arm_DM.urdf
+../reBotArm_ros2_DM/src/rebotarm_bringup/description/meshes
 ```
 
 The web-only gripper meshes are kept in:

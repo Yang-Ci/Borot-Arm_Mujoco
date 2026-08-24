@@ -38,7 +38,7 @@ python -m pip install fastmcp
 Then build the package:
 
 ```bash
-cd ~/reBotArmController_ROS2-main
+cd ~/reBotArm_ros2_DM
 source /opt/ros/jazzy/setup.bash
 colcon build --symlink-install --packages-select rebotarm_agent
 source install/setup.bash
@@ -58,7 +58,7 @@ ros2 launch rebotarm_agent rebotarm_mcp.launch.py
 The launch file runs the MCP server through:
 
 ```text
-~/reBot_Arm_Mujoco-DM/reBotArmController_ROS2-main/.venv/bin/python3
+~/reBot_Arm_Mujoco-DM/reBotArm_ros2_DM/.venv/bin/python3
 ```
 
 This keeps `fastmcp` inside the workspace virtual environment instead of the
@@ -147,7 +147,7 @@ Return to safe home.
 Start the full simulation stack:
 
 ```bash
-cd ~/reBotArmController_ROS2-main
+cd ~/reBotArm_ros2_DM
 source scripts/source_rebotarm_env.sh
 ./scripts/start_rebot_mujoco_all.sh
 ```
@@ -194,7 +194,7 @@ control the robot with short Chinese or English instructions.
 Start the simulation stack in one terminal:
 
 ```bash
-cd ~/reBotArmController_ROS2-main
+cd ~/reBotArm_ros2_DM
 source /opt/ros/jazzy/setup.bash
 source .venv/bin/activate
 source install/setup.bash
@@ -204,7 +204,7 @@ source install/setup.bash
 Start the MCP server in a second terminal:
 
 ```bash
-cd ~/reBotArmController_ROS2-main
+cd ~/reBotArm_ros2_DM
 source /opt/ros/jazzy/setup.bash
 source .venv/bin/activate
 source install/setup.bash
@@ -214,7 +214,7 @@ ros2 launch rebotarm_agent rebotarm_mcp.launch.py motion_mode:=allow
 Start the text agent in a third terminal:
 
 ```bash
-cd ~/reBotArmController_ROS2-main
+cd ~/reBotArm_ros2_DM
 source /opt/ros/jazzy/setup.bash
 source .venv/bin/activate
 source install/setup.bash

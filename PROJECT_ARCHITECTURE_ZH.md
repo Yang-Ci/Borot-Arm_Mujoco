@@ -12,7 +12,7 @@
 
 | 目录 | 作用 |
 | --- | --- |
-| `reBotArmController_ROS2-main/` | ROS 2 工作空间，包含真机驱动、假驱动、消息接口、MuJoCo 和 AI Agent |
+| `reBotArm_ros2_DM/` | ROS 2 工作空间，包含真机驱动、假驱动、消息接口、MuJoCo 和 AI Agent |
 | `reBotArm_simulator-DM/` | Node.js + Three.js 网页控制台，支持本地可视化、ROS 控制、相机预览和 LLM 对话 |
 
 ROS 2 工作空间包含五个包：
@@ -223,7 +223,7 @@ tau = clip(tau, -tau_limit, +tau_limit)
 Node.js 从 ROS 2 bringup 包读取：
 
 ```text
-rebotarm_bringup/description/urdf/reBot-DevArm_fixend.urdf
+rebotarm_bringup/description/urdf/ReBot_Arm_DM.urdf
 rebotarm_bringup/description/meshes/*.STL
 ```
 
@@ -237,7 +237,7 @@ rebotarm_bringup/description/meshes/*.STL
 
 ```text
 reBot-DevArm-main/
-├─ reBotArmController_ROS2-main/
+├─ reBotArm_ros2_DM/
 │  └─ src/rebotarm_bringup/description/
 │     ├─ urdf/                     主模型 URDF
 │     └─ meshes/                   机械臂与当前夹爪 STL
@@ -246,7 +246,7 @@ reBot-DevArm-main/
    └─ split_meshes/grouped_gripper/ 网页夹爪补充网格
 ```
 
-因此，当前仓库的网页目录不需要再保存一套 `meshes/` 和 `urdf/`。这样可以避免同一模型出现两份副本、修改一份却忘记同步另一份。网页目录不能脱离仓库单独复制运行，因为它依赖兄弟目录 `reBotArmController_ROS2-main`。
+因此，当前仓库的网页目录不需要再保存一套 `meshes/` 和 `urdf/`。这样可以避免同一模型出现两份副本、修改一份却忘记同步另一份。网页目录不能脱离仓库单独复制运行，因为它依赖兄弟目录 `reBotArm_ros2_DM`。
 
 下载目录中曾出现的 standalone 布局，是为了把网页文件夹单独分发：
 
