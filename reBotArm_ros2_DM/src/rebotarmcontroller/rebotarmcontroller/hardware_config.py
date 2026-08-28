@@ -121,9 +121,28 @@ def _load_ros_hardware_config(
     merged = _deep_merge(merged, model_config.get("overrides", {}) or {})
     if channel:
         merged["channel"] = channel
+    _resolve_package_urdf(merged)
     _add_runtime_config(merged)
 
     return model_name, merged
+
+
+def _resolve_package_urdf(data: dict[str, Any]) -> None:
+    """Resolve a package:// URDF URI before passing config to the SDK."""
+    value = str(data.get("urdf_path", ""))
+    prefix = "package://"
+    if not value.startswith(prefix):
+        return
+
+    package_and_path = value[len(prefix) :]
+    package_name, separator, relative_path = package_and_path.partition("/")
+    if not separator or not package_name or not relative_path:
+        raise ValueError(f"invalid package URDF URI: {value}")
+
+    resolved = Path(get_package_share_directory(package_name)) / relative_path
+    if not resolved.is_file():
+        raise FileNotFoundError(f"package URDF not found: {resolved}")
+    data["urdf_path"] = str(resolved)
 
 
 def _add_runtime_config(data: dict[str, Any]) -> None:

@@ -25,7 +25,7 @@ URDF = URDF_DIR / "ReBot_Arm_DM.urdf"
 
 NS = {"c": "http://www.collada.org/2005/11/COLLADASchema"}
 
-# link -> ordered material parts, name and DAE diffuse colour
+# link -> ordered material parts from the canonical Web/RViz visual split
 ARM_MATERIALS = {
     "base_link": ["matte_black", "hardware_black", "silver_trim"],
     "link1": ["anodized_grey", "hardware_black", "matte_black"],
@@ -37,11 +37,11 @@ ARM_MATERIALS = {
 }
 
 EYE_COLOURS = {
-    "matte_black": (0.14, 0.16, 0.15, 1.0),
-    "hardware_black": (0.055, 0.065, 0.06, 1.0),
-    "anodized_grey": (0.72, 0.76, 0.73, 1.0),
+    "matte_black": (0.066667, 0.074510, 0.070588, 1.0),
+    "hardware_black": (0.019608, 0.027451, 0.023529, 1.0),
+    "anodized_grey": (0.831373, 0.847059, 0.831373, 1.0),
     "seeed_yellow": (0.73, 0.84, 0.12, 1.0),
-    "silver_trim": (0.72, 0.76, 0.73, 1.0),
+    "silver_trim": (0.878431, 0.890196, 0.874510, 1.0),
 }
 
 MATERIAL_OVERRIDES = {

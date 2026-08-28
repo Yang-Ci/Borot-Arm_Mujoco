@@ -56,7 +56,7 @@ finger_left:
 ```
 
 For the STL gripper, `finger_left` is a prismatic joint in meters. Use values in
-the `0.0` to `0.0285` range; larger values are clamped by the sync node to the
+the `0.0` to `0.05` range; larger values are clamped by the sync node to the
 MJCF joint limits.
 
 ## MuJoCo tau_g compare and torque loop

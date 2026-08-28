@@ -4,11 +4,12 @@ const NS = 'rebotarm';
  const URL_STORAGE_KEY = 'rebotarm.ros.url';
   function loadSavedUrl() { try { return localStorage.getItem(URL_STORAGE_KEY) || ''; } catch (_) { return ''; } }
   function saveUrl(url) { try { localStorage.setItem(URL_STORAGE_KEY, url); } catch (_) {} }
- const OPEN_GRIPPER_M = 0.09;
+ const OPEN_GRIPPER_M = 0.10;
   const CLOSE_GRIPPER_M = 0;
   const GRIPPER_BASE_GAP_M = 0;
-  const GRIPPER_VISUAL_TRAVEL_M = 0.057;
-  const GRIPPER_EFFECTIVE_GAP_M = 0.057;
+  const GRIPPER_VISUAL_TRAVEL_M = 0.10;
+  const GRIPPER_EFFECTIVE_GAP_M = 0.10;
+  const GRIPPER_FINGER_TRAVEL_M = 0.05;
   const GRIPPER_CLOSED_DISPLAY_SNAP_M = 0.003;
   const GRASP_SQUEEZE_M = 0.004;
   const MIN_OBJECT_GRASP_M = 0.018;
@@ -249,10 +250,13 @@ const NS = 'rebotarm';
   function handleJointStates(msg, isPhysicsFeedback) {
     if (!window.reBotSim || !Array.isArray(msg.name) || !Array.isArray(msg.position)) return;
     const now = performance.now();
-    if (isPhysicsFeedback) {
-      latestPhysicsJointStateAt = now;
-      announceMujocoSync(t('reason.mujocoPhysics'));
-    }
+   if (isPhysicsFeedback) {
+     latestPhysicsJointStateAt = now;
+     announceMujocoSync(t('reason.mujocoPhysics'));
+      if (window.reBotSim && typeof window.reBotSim.setMujocoPhysicsActive === 'function') {
+        window.reBotSim.setMujocoPhysicsActive(true);
+      }
+   }
     const useForDisplay = isPhysicsFeedback || !hasFreshPhysicsJointFeedback(now);
     const next = {};
     msg.name.forEach((name, index) => {
@@ -294,7 +298,7 @@ const NS = 'rebotarm';
         const holdUntil = mirrorHoldUntil.get(name) || 0;
         const target = simTargetAngles.get(name);
         const reachedTarget = typeof target === 'number' && Math.abs(target - value) < 0.025;
-        if (!holdStaleDragFrame && (isPhysicsFeedback || reachedTarget || now > holdUntil)) {
+        if (!holdStaleDragFrame && (reachedTarget || now > holdUntil)) {
           mirrorHoldUntil.delete(name);
           mirrored[name] = value;
         }
@@ -310,7 +314,7 @@ const NS = 'rebotarm';
         const holdUntil = mirrorHoldUntil.get('gripper') || 0;
         const target = simTargetAngles.get('gripper');
         const reachedTarget = typeof target === 'number' && Math.abs(target - gripperWidth) < 0.003;
-        if (isPhysicsFeedback || reachedTarget || now > holdUntil) {
+        if (reachedTarget || now > holdUntil) {
           mirrorHoldUntil.delete('gripper');
           mirrored.gripper = gripperWidth;
         }
@@ -791,9 +795,14 @@ const NS = 'rebotarm';
     return t('log.rosCallDone');
   }
 
-  function updateDiagnostics() {
-    updateCameraStatusFromTopic();
-  }
+ function updateDiagnostics() {
+    // Sync physics-active flag so the sim stops deferring to MuJoCo
+    // for object placement once physics feedback goes stale.
+    if (window.reBotSim && typeof window.reBotSim.setMujocoPhysicsActive === 'function') {
+      window.reBotSim.setMujocoPhysicsActive(hasFreshPhysicsJointFeedback());
+    }
+   updateCameraStatusFromTopic();
+ }
 
   function markTopicDiag(el, topic) {
     const last = client.getLastMessageAt(topic);
@@ -1630,15 +1639,20 @@ const NS = 'rebotarm';
     return { ...target };
   }
 
-  function attachSimCarriedObject(target) {
-    const color = target && target.color ? String(target.color) : '';
-    if (!color) return;
-    heldVisionTarget = cloneVisionTarget(target);
-    if (!window.reBotSim || typeof window.reBotSim.attachObject !== 'function') return;
-   if (window.reBotSim.attachObject(color)) {
-      writeLog(t('log.simAttach', {color}), 'ok');
-   }
+ function attachSimCarriedObject(target) {
+   const color = target && target.color ? String(target.color) : '';
+   if (!color) return;
+   heldVisionTarget = cloneVisionTarget(target);
+   if (!window.reBotSim || typeof window.reBotSim.attachObject !== 'function') return;
+   const mujocoOwnsObject = typeof window.reBotSim.hasMujocoObjectFeedbackOwnership === 'function'
+     && window.reBotSim.hasMujocoObjectFeedbackOwnership();
+    const mujocoPhysicsRunning = hasFreshPhysicsJointFeedback();
+    if (!mujocoOwnsObject && !mujocoPhysicsRunning && window.reBotSim.attachObject(color)) {
+     writeLog(t('log.simAttach', {color}), 'ok');
+    } else if (mujocoOwnsObject || mujocoPhysicsRunning) {
+      writeLog(t('log.simAttachSkip', {color}), 'info');
   }
+ }
 
   function releaseSimCarriedObject() {
     heldVisionTarget = null;
@@ -1916,7 +1930,11 @@ const NS = 'rebotarm';
   }
 
   function fingerOpeningToGripperCommand(opening) {
-    return clamp((Number(opening) / 0.0285) * OPEN_GRIPPER_M, CLOSE_GRIPPER_M, OPEN_GRIPPER_M);
+    return clamp(
+      (Number(opening) / GRIPPER_FINGER_TRAVEL_M) * OPEN_GRIPPER_M,
+      CLOSE_GRIPPER_M,
+      OPEN_GRIPPER_M
+    );
   }
 
   function snapClosedGripperForDisplay(position) {
@@ -1928,9 +1946,7 @@ const NS = 'rebotarm';
     syncSimGripper(position);
     client.publishGripperCommand(position);
     simTargetAngles.set('gripper', position);
-    if (!hasFreshPhysicsJointFeedback()) {
-      mirrorHoldUntil.set('gripper', performance.now() + 1200);
-    }
+    mirrorHoldUntil.set('gripper', performance.now() + 1200);
     const feedback = typeof latestGripperPosition === 'number' ? t('fb.gripperFb', {mm: Math.round(latestGripperPosition * 1000)}) : '';
     setMessage(t('msg.gripperCmdPublished', {mm: Math.round(position * 1000), fb: feedback}));
     writeLog(t('log.gripperCmd', {mm: Math.round(position * 1000), topic: '/' + NS + '/gripper/cmd'}), 'ok');

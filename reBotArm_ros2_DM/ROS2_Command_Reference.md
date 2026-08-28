@@ -45,7 +45,7 @@ ros2 service call /rebotarm/gravity_compensation/stop std_srvs/srv/Trigger
 # 查询重力补偿状态
 ros2 service call /rebotarm/gravity_compensation/status std_srvs/srv/Trigger
 
-# 设置夹爪开度（0 = 闭合，0.09 = 全开，单位米）
+# 设置夹爪开度（0 = 闭合，0.10 = 全开，单位米）
 ros2 service call /rebotarm/gripper/set rebotarm_msgs/srv/SetGripper "{position: 0.05, timeout: 3.0}"
 
 # IK 可达性检查（不执行运动）
@@ -147,7 +147,7 @@ ros2 bag play /tmp/arm_demo
 | `/rebotarm/gripper/state` | `rebotarm_msgs/msg/JointMotorState` | 订阅 | 夹爪位置 / 速度 / 力矩 |
 | `/rebotarm/arm_status` | `rebotarm_msgs/msg/ArmStatus` | 订阅 | 使能、模式、状态机 |
 | `/rebotarm/joints/<N>/cmd` | `rebotarm_msgs/msg/JointMotorCmd` | 发布 | 单关节稀疏命令 |
-| `/rebotarm/gripper/cmd` | `rebotarm_msgs/msg/JointMotorCmd` | 发布 | 夹爪命令（米，0~0.09） |
+| `/rebotarm/gripper/cmd` | `rebotarm_msgs/msg/JointMotorCmd` | 发布 | 夹爪命令（米，0~0.10） |
 | `/rebotarm/mujoco/target_pose` | `geometry_msgs/msg/PoseStamped` | 发布 | TCP 拖拽目标位姿 |
 | `/rebotarm/mujoco/overhead_rgb/image_raw` | `sensor_msgs/msg/Image` | 订阅 | 桌面俯视相机 RGB |
 | `/rebotarm/vision/color_blocks/detections` | `std_msgs/msg/String` | 订阅 | 颜色块检测结果（JSON） |

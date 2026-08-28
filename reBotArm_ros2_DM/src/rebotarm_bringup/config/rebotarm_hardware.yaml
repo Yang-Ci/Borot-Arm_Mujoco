@@ -11,7 +11,7 @@ models:
     sdk_config: rebotarm_dm.yaml
     overrides:
       name: reBotArm-B601-DM
-      urdf_path: urdf/reBot-DevArm_fixend_description/urdf/reBot-DevArm_fixend.urdf
+      urdf_path: package://rebotarm_bringup/description/urdf/ReBot_Arm_DM.urdf
       end_effector_frame: end_link
       channel: /dev/ttyACM0
       rate: 500

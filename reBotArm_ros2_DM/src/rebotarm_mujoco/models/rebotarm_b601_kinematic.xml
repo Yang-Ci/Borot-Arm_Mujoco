@@ -96,12 +96,12 @@
                     <site name="tcp" pos="-0.095 0 0" size="0.008" rgba="1 0.34 0.16 1"/>
 
                     <body name="finger_left_link" pos="-0.072 0.010 0">
-                      <joint name="finger_left" type="slide" axis="0 1 0" range="0 0.0285"/>
+                      <joint name="finger_left" type="slide" axis="0 1 0" range="0 0.05"/>
                       <geom name="finger_left_geom" type="box" pos="-0.025 0.014 0" size="0.032 0.006 0.018" material="gripper_mat"/>
                     </body>
 
                     <body name="finger_right_link" pos="-0.072 -0.010 0">
-                      <joint name="finger_right" type="slide" axis="0 1 0" range="-0.0285 0"/>
+                      <joint name="finger_right" type="slide" axis="0 1 0" range="-0.05 0"/>
                       <geom name="finger_right_geom" type="box" pos="-0.025 -0.014 0" size="0.032 0.006 0.018" material="gripper_mat"/>
                     </body>
                   </body>

@@ -72,7 +72,7 @@ _GRIPPER_BASE_GAP_FALLBACK_M = 0.014
 _GRIPPER_GRASP_CLEARANCE_M = 0.004
 _GRIPPER_GRASP_RELEASE_MARGIN_M = 0.006
 _GRIPPER_GRASP_TOLERANCE_M = 0.0015
-_GRIPPER_QPOS_MAX_FALLBACK_M = 0.0285
+_GRIPPER_QPOS_MAX_FALLBACK_M = 0.05
 
 
 class MujocoReal2Sim(Node):
@@ -240,9 +240,107 @@ class MujocoReal2Sim(Node):
     def _load_mujoco_model(cls, path: Path) -> mujoco.MjModel:
         resolved = cls._xml_with_resolved_mesh_assets(path)
         if resolved is None:
-            return mujoco.MjModel.from_xml_path(str(path))
-        resolved_xml, assets = resolved
-        return mujoco.MjModel.from_xml_string(resolved_xml, assets=assets)
+            model = mujoco.MjModel.from_xml_path(str(path))
+        else:
+            resolved_xml, assets = resolved
+            model = mujoco.MjModel.from_xml_string(resolved_xml, assets=assets)
+        cls._apply_canonical_urdf_visuals(model)
+        return model
+
+    @classmethod
+    def _canonical_visual_urdf(cls) -> Path:
+        try:
+            bringup_share = Path(get_package_share_directory("rebotarm_bringup"))
+        except Exception:
+            bringup_share = (
+                Path(__file__).resolve().parents[2]
+                / "rebotarm_bringup"
+            )
+        return bringup_share / "description" / "urdf" / "ReBot_Arm_DM.urdf"
+
+    @classmethod
+    def _apply_canonical_urdf_visuals(cls, model: mujoco.MjModel) -> None:
+        """Apply the shared URDF palette and visual-to-material assignments.
+
+        MuJoCo still needs MJCF for dynamics, contacts, actuators, cameras, and
+        task objects.  Robot visual ownership, however, stays in the canonical
+        ReBot_Arm_DM.urdf used directly by Web and RViz.
+        """
+        material_names = {
+            name
+            for material_id in range(model.nmat)
+            if (name := mujoco.mj_id2name(
+                model,
+                mujoco.mjtObj.mjOBJ_MATERIAL,
+                material_id,
+            ))
+        }
+        canonical_materials = {
+            name.removesuffix("_mat")
+            for name in material_names
+            if name.endswith("_mat")
+        }
+        if not canonical_materials.intersection(
+            {
+                "anodized_grey",
+                "hardware_black",
+                "matte_black",
+                "seeed_yellow",
+                "silver_trim",
+                "gripper_finger_black",
+                "gripper_carriage_grey",
+                "gripper_rack_metal",
+                "gripper_seeed_yellow",
+                "gripper_hardware_black",
+                "gripper_base_metal",
+            }
+        ):
+            return
+
+        urdf_path = cls._canonical_visual_urdf()
+        if not urdf_path.is_file():
+            raise FileNotFoundError(f"canonical visual URDF was not found: {urdf_path}")
+
+        robot = ET.parse(urdf_path).getroot()
+        palette: dict[str, np.ndarray] = {}
+        for material in robot.findall("material"):
+            name = material.get("name")
+            color = material.find("color")
+            rgba_text = color.get("rgba") if color is not None else None
+            if not name or not rgba_text:
+                continue
+            rgba = np.asarray([float(value) for value in rgba_text.split()], dtype=np.float32)
+            if rgba.shape != (4,):
+                raise ValueError(f"material {name!r} in {urdf_path} must define four RGBA values")
+            palette[name] = rgba
+
+        material_ids: dict[str, int] = {}
+        for urdf_name, rgba in palette.items():
+            mujoco_name = f"{urdf_name}_mat"
+            material_id = mujoco.mj_name2id(
+                model,
+                mujoco.mjtObj.mjOBJ_MATERIAL,
+                mujoco_name,
+            )
+            if material_id < 0:
+                continue
+            model.mat_rgba[material_id] = rgba
+            material_ids[urdf_name] = material_id
+
+        for visual in robot.findall("./link/visual"):
+            visual_name = visual.get("name")
+            material = visual.find("material")
+            material_name = material.get("name") if material is not None else None
+            material_id = material_ids.get(material_name or "")
+            if not visual_name or material_id is None:
+                continue
+            geom_id = mujoco.mj_name2id(
+                model,
+                mujoco.mjtObj.mjOBJ_GEOM,
+                f"{visual_name}_visual",
+            )
+            if geom_id >= 0:
+                model.geom_matid[geom_id] = material_id
 
     @classmethod
     def _xml_with_resolved_mesh_assets(cls, path: Path) -> tuple[str, dict[str, bytes]] | None:

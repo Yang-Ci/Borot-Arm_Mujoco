@@ -9,7 +9,7 @@ from rebotarm_msgs.srv import SetGripper
 from std_srvs.srv import Trigger
 
 _NAMESPACE = "rebotarm"
-_OPEN_POSITION_M = 0.09
+_OPEN_POSITION_M = 0.10
 _CLOSE_POSITION_M = 0.0
 _MAX_EFFORT = 0.0
 

@@ -65,7 +65,7 @@ SYSTEM_PROMPT = """你是 reBotArm 机械臂的智能控制助手。你必须使
 - safe_home: 回到安全位置
 - move_to_pose: 移动到指定位置（x, y, z, roll_deg, pitch_deg, yaw_deg, duration）
 - move_joints: 控制关节角度
-- set_gripper_opening_mm: 设置夹爪开度（0-90mm）
+- set_gripper_opening_mm: 设置夹爪开度（0-100mm）
 - detect_blocks: 检测颜色物块
 - pick_color: 抓取指定颜色物块
 - record_start / record_stop / record_replay: 录制/重放动作
@@ -144,7 +144,7 @@ async def run_repl(args: argparse.Namespace) -> int:
         print(f"Tools: {', '.join(tool_names)}")
         print(
             "输入中文指令；/tools 查看工具，/status 诊断，/detect 查看色块，"
-            "/pick red 抓取，/gripper 90 控制夹爪，/reset 清空上下文，/exit 退出。"
+            "/pick red 抓取，/gripper 100 控制夹爪，/reset 清空上下文，/exit 退出。"
             "在本地命令后加 --json 可显示原始数据。"
         )
 
@@ -301,7 +301,7 @@ async def _try_local_command(
         print(_summarize_pick_color(result))
     elif command == "/gripper":
         if len(parts) < 2:
-            print("用法：/gripper 90")
+            print("用法：/gripper 100")
             return True
         try:
             opening_mm = float(parts[1])
@@ -357,7 +357,7 @@ def _parse_builtin_intent(text: str) -> dict[str, Any] | None:
         return {"command": "/pick", "args": [color or "auto"]}
 
     if "打开夹爪" in compact or "张开夹爪" in compact:
-        opening = _extract_number(compact, default=90.0)
+        opening = _extract_number(compact, default=100.0)
         return {"command": "/gripper", "args": [str(opening)]}
 
     if "关闭夹爪" in compact or "闭合夹爪" in compact or "夹爪关闭" in compact:
@@ -952,7 +952,7 @@ const TOOL_I18N={
   'move_to_pose':{zh:{name:'移动到位姿',desc:'将末端执行器移动到笛卡尔位姿。需要 motion_mode=allow'}},
   'move_joints':{zh:{name:'移动关节',desc:'使用安全两点轨迹移动一个或多个机械臂关节（弧度）。需要 motion_mode=allow'}},
   'ik_check':{zh:{name:'IK 可达性检查',desc:'对目标位姿运行 IK 可达性检查，不执行运动'}},
-  'set_gripper_opening_mm':{zh:{name:'设置夹爪开度',desc:'命令夹爪开度（毫米），0 闭合至 90 全开。需要 motion_mode=allow'}},
+  'set_gripper_opening_mm':{zh:{name:'设置夹爪开度',desc:'命令夹爪开度（毫米），0 闭合至 100 全开。需要 motion_mode=allow'}},
   'gravity_compensation_status':{zh:{name:'重力补偿状态',desc:'查询控制器端重力补偿是否激活'}},
   'gravity_compensation_start':{zh:{name:'启动重力补偿',desc:'启动控制器端重力补偿。需要 motion_mode=allow'}},
   'gravity_compensation_stop':{zh:{name:'停止重力补偿',desc:'停止控制器端重力补偿'}},

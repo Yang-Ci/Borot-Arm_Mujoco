@@ -7,11 +7,11 @@ workspace; this directory is not a self-contained standalone package.
 The UI models the arm as 6 URDF joints plus the configured gripper actuator
 from `gripper.yaml` (`motor_id: 0x07`). The current ROS2 URDF ends at
 `end_link`, so the web simulator adds a lightweight visual gripper at the tool
-end and drives it from 0-90 mm, matching the ROS2 demo values:
+end and drives it from 0-100 mm, matching the ROS2 demo values:
 
 ```text
 close: 0.00 m
-open:  0.09 m
+open:  0.10 m
 ```
 
 ## Run

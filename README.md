@@ -360,11 +360,11 @@ These parameters are stored in motor firmware registers and written by the SDK d
 
 #### Gripper Unit Conversion
 
-The web and ROS interfaces use **meters** (0.0 = fully closed, 0.09 = fully open); the motor firmware uses **radians** (0.0 = closed, −5.0 = open). Conversion is done in `HardwareManager`:
+The web and ROS interfaces use **meters** (0.0 = fully closed, 0.10 = fully open); the motor firmware uses **radians** (0.0 = closed, −5.0 = open). Conversion is done in `HardwareManager`:
 
 ```
-radians = (distance_m / 0.09) × (−5.0)
-distance_m = (radians / −5.0) × 0.09
+radians = (distance_m / 0.10) × (−5.0)
+distance_m = (radians / −5.0) × 0.10
 ```
 
 ### Web rosbridge Address

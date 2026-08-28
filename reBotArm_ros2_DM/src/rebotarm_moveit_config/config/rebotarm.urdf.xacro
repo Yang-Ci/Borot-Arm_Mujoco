@@ -1,14 +1,14 @@
 <?xml version="1.0"?>
-<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="reBot_B601_DM_with_gripper">
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="ReBot_Arm_DM">
   <xacro:arg name="initial_positions_file" default="$(find rebotarm_moveit_config)/config/initial_positions.yaml"/>
 
-  <xacro:include filename="$(find rebotarm_bringup)/description/urdf/reBot_B601_DM_with_gripper.urdf"/>
+  <xacro:include filename="$(find rebotarm_bringup)/description/urdf/ReBot_Arm_DM.urdf"/>
   <xacro:include filename="$(find rebotarm_moveit_config)/config/rebotarm.ros2_control.xacro"/>
 
   <link name="gripper_tcp"/>
   <joint name="gripper_tcp_joint" type="fixed">
-    <origin xyz="-0.0443 0 0" rpy="0 0 0"/>
-    <parent link="gripper_link"/>
+    <origin xyz="-0.105 0 0" rpy="0 0 0"/>
+    <parent link="end_link"/>
     <child link="gripper_tcp"/>
   </joint>
 

@@ -11,9 +11,9 @@ import yaml
 
 from .conversions import fk_to_pose
 
-_G_MAX_DIST_M = 0.09
+_G_MAX_DIST_M = 0.10
 _G_ANGLE_OPEN = -5.0
-_G_OPEN_SOFT_LIMIT = -4.9
+_G_OPEN_SOFT_LIMIT = -5.0
 _G_ARRIVE_TOL = 0.12
 _G_TAU_MAX = 1.5
 _G_DEFAULT_FORCE = 0.30

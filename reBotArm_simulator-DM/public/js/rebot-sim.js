@@ -3,8 +3,8 @@ const t = window.rebotI18n ? window.rebotI18n.t : (k) => k;
  const DEG = Math.PI / 180;
   const RAD = 180 / Math.PI;
   const NOMINAL_REACH = 0.65;
-  const GRIPPER_COMMAND_MAX = 0.09;
-  const GRIPPER_VISUAL_MAX = 0.057;
+  const GRIPPER_COMMAND_MAX = 0.10;
+  const GRIPPER_VISUAL_MAX = 0.10;
   const GRIPPER_ANIMATION_MS = 520;
   const GRIPPER_MESH_VERSION = 'real-finish-v11-metal-palm-plate';
   const FAKE_GRASP_LOCAL_OFFSET = new THREE.Vector3(-0.05, 0, -0.02);
@@ -23,21 +23,21 @@ const t = window.rebotI18n ? window.rebotI18n.t : (k) => k;
   );
   const THREE_TO_ROS_FRAME = ROS_TO_THREE_FRAME.clone().invert();
 
-  // Real-robot finishes keyed by the URDF <material name>. The optional Web
-  // colour compensates for ACES rendering without an environment map; it
-  // preserves the shared palette while keeping silver and black distinguishable.
+  // Surface response keyed by the canonical URDF <material name>. Colour is
+  // always inherited from ReBot_Arm_DM.urdf so Web, RViz, and MuJoCo share one
+  // palette; this table only describes Web-specific PBR surface response.
   const URDF_FINISH_PARAMS = {
-    matte_black: { color: 0x111312, roughness: 0.72, metalness: 0.02 },
-    hardware_black: { color: 0x050706, roughness: 0.38, metalness: 0.35 },
-    anodized_grey: { color: 0xd4d8d4, roughness: 0.36, metalness: 0.34 },
+    matte_black: { roughness: 0.72, metalness: 0.02 },
+    hardware_black: { roughness: 0.38, metalness: 0.35 },
+    anodized_grey: { roughness: 0.36, metalness: 0.34 },
     seeed_yellow: { roughness: 0.34, metalness: 0.18 },
-    silver_trim: { color: 0xe0e3df, roughness: 0.28, metalness: 0.38 },
-    gripper_finger_black: { color: 0x111312, roughness: 0.72, metalness: 0.02 },
+    silver_trim: { roughness: 0.28, metalness: 0.38 },
+    gripper_finger_black: { roughness: 0.72, metalness: 0.02 },
     gripper_carriage_grey: { roughness: 0.38, metalness: 0.62 },
-    gripper_rack_metal: { color: 0xd4d8d4, roughness: 0.30, metalness: 0.38 },
+    gripper_rack_metal: { roughness: 0.30, metalness: 0.38 },
     gripper_seeed_yellow: { roughness: 0.34, metalness: 0.18 },
-    gripper_hardware_black: { color: 0x050706, roughness: 0.38, metalness: 0.35 },
-    gripper_base_metal: { color: 0xd4d8d4, roughness: 0.30, metalness: 0.38 }
+    gripper_hardware_black: { roughness: 0.38, metalness: 0.35 },
+    gripper_base_metal: { roughness: 0.30, metalness: 0.38 }
   };
   const GRIPPER_BASE_FINISH_GROUPS = [[2, 2338], [2, 2212], [2, 2184], [5, 2628], [3, 2484]];
   const GRIPPER_FINGER_FACE_RANGES = {
@@ -90,8 +90,10 @@ const t = window.rebotI18n ? window.rebotI18n.t : (k) => k;
   let moveDuration = 900;
   let gripperMotion = null;
   let carriedObject = null;
-  let mujocoObjectFeedbackAt = 0;
-  const taskObjects = new Map();
+ let mujocoObjectFeedbackSeen = false;
+ let mujocoObjectFeedbackAt = 0;
+  let mujocoPhysicsActive = false;
+ const taskObjects = new Map();
   let dragMode = false;
   let draggingTcp = false;
   let dragPlane = null;
@@ -655,8 +657,7 @@ const t = window.rebotI18n ? window.rebotI18n.t : (k) => k;
         return;
       }
 
-      // Start from the shared URDF material, then apply the Web-only finish
-      // compensation keyed by that same material name.
+      // Keep the shared URDF colour and only apply the Web surface response.
       const sourceMaterial = Array.isArray(child.material) ? child.material[0] : child.material;
       const finishParams = (sourceMaterial && sourceMaterial.name && URDF_FINISH_PARAMS[sourceMaterial.name])
         || (sourceMaterial && URDF_FINISH_PARAMS[linkFinishName(child)]);
@@ -1804,10 +1805,10 @@ const t = window.rebotI18n ? window.rebotI18n.t : (k) => k;
     return link.localToWorld(FAKE_GRASP_LOCAL_OFFSET.clone());
   }
 
-  function updateCarriedObject() {
-    if (!carriedObject || !carriedObject.mesh || !robot) return;
-    if (hasFreshMujocoObjectFeedback()) return;
-    const grip = getFakeGraspPosition(robot) || getTcpPosition(robot);
+ function updateCarriedObject() {
+   if (!carriedObject || !carriedObject.mesh || !robot) return;
+    if (mujocoObjectFeedbackSeen || mujocoPhysicsActive) return;
+   const grip = getFakeGraspPosition(robot) || getTcpPosition(robot);
     if (!grip) return;
     carriedObject.mesh.position.lerp(grip, 0.55);
     enforceTableCollision(carriedObject.mesh);
@@ -1923,11 +1924,17 @@ const t = window.rebotI18n ? window.rebotI18n.t : (k) => k;
             .multiply(THREE_TO_ROS_FRAME);
         }
       }
-      mesh.userData.restPosition = mesh.position.clone();
-      updated = true;
-    });
-    if (updated) mujocoObjectFeedbackAt = performance.now();
-  }
+     mesh.userData.restPosition = mesh.position.clone();
+     updated = true;
+   });
+    // Receiving any message on the object_states topic means MuJoCo is
+    // publishing object positions; take ownership even if no valid meshes
+    // matched yet.  This closes the window before attachSimCarriedObject
+    // runs during a visual grasp.
+    mujocoObjectFeedbackSeen = true;
+    mujocoObjectFeedbackAt = performance.now();
+    if (updated && carriedObject) releaseObject({ settleOnTable: false });
+ }
 
   function getSceneCollisionMap() {
     const objects = {};
@@ -1943,7 +1950,7 @@ const t = window.rebotI18n ? window.rebotI18n.t : (k) => k;
     return {
       frame: 'base_link',
       mapping: 'three(x,y,z)=ros(x,z,-y)',
-      source: hasFreshMujocoObjectFeedback() ? 'mujoco_object_states' : 'web_fallback',
+      source: mujocoObjectFeedbackSeen ? 'mujoco_object_states' : 'web_fallback',
       table: {
         center: { x: TABLE_CENTER_X, y: 0, z: TABLE_SURFACE_Y - 0.015 },
         size: { x: TABLE_WIDTH, y: TABLE_DEPTH, z: 0.03 },
@@ -1953,32 +1960,33 @@ const t = window.rebotI18n ? window.rebotI18n.t : (k) => k;
     };
   }
 
-  function attachObject(color) {
-    const key = String(color || '').toLowerCase();
-    const mesh = taskObjects.get(key);
-    if (!mesh) return false;
-    if (carriedObject && carriedObject.mesh !== mesh) {
-      releaseObject({ settleOnTable: true });
-    }
-    carriedObject = { color: key, mesh };
-    mesh.userData.fakeCarried = true;
-    updateCarriedObject();
-    return true;
-  }
+ function attachObject(color) {
+   const key = String(color || '').toLowerCase();
+   const mesh = taskObjects.get(key);
+   if (!mesh) return false;
+    if (mujocoObjectFeedbackSeen || mujocoPhysicsActive) return false;
+   if (carriedObject && carriedObject.mesh !== mesh) {
+     releaseObject({ settleOnTable: true });
+   }
+   carriedObject = { color: key, mesh };
+   mesh.userData.fakeCarried = true;
+   updateCarriedObject();
+   return true;
+ }
 
-  function releaseObject(options) {
-    if (!carriedObject || !carriedObject.mesh) {
-      carriedObject = null;
-      return false;
-    }
-    const mesh = carriedObject.mesh;
-    mesh.userData.fakeCarried = false;
-    if (!options || options.settleOnTable !== false) {
-      if (!hasFreshMujocoObjectFeedback()) settleTaskObject(mesh);
-    }
-    carriedObject = null;
-    return true;
-  }
+ function releaseObject(options) {
+   if (!carriedObject || !carriedObject.mesh) {
+     carriedObject = null;
+     return false;
+   }
+   const mesh = carriedObject.mesh;
+   mesh.userData.fakeCarried = false;
+   if (!options || options.settleOnTable !== false) {
+      if (!mujocoObjectFeedbackSeen && !mujocoPhysicsActive) settleTaskObject(mesh);
+   }
+   carriedObject = null;
+   return true;
+ }
 
   function threeToRos(v) {
     return { x: v.x, y: -v.z, z: v.y };
@@ -2167,7 +2175,19 @@ const t = window.rebotI18n ? window.rebotI18n.t : (k) => k;
     attachObject(color) {
       return attachObject(color);
     },
-    releaseObject(options) {
+    hasFreshMujocoObjectFeedback() {
+      return hasFreshMujocoObjectFeedback();
+    },
+   hasMujocoObjectFeedbackOwnership() {
+     return mujocoObjectFeedbackSeen;
+   },
+    setMujocoPhysicsActive(active) {
+      mujocoPhysicsActive = Boolean(active);
+    },
+    isMujocoPhysicsActive() {
+      return mujocoPhysicsActive;
+    },
+   releaseObject(options) {
       return releaseObject(options || {});
     },
     getCarriedObject() {

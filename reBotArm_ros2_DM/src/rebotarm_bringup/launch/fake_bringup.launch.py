@@ -17,8 +17,13 @@ def generate_launch_description():
     urdf_file = PathJoinSubstitution(
         [bringup_share, "description", "urdf", "ReBot_Arm_DM.urdf"]
     )
+    rviz_urdf_compat = PathJoinSubstitution(
+        [bringup_share, "launch", "rviz_urdf_compat.py"]
+    )
     rviz_config = PathJoinSubstitution([bringup_share, "rviz", "rebotarm.rviz"])
-    robot_description = ParameterValue(Command(["cat ", urdf_file]), value_type=str)
+    robot_description = ParameterValue(
+        Command(["python3 ", rviz_urdf_compat, " ", urdf_file]), value_type=str
+    )
 
     return LaunchDescription(
         [

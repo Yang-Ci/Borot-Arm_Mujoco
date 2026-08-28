@@ -13,10 +13,12 @@ from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
 from moveit_configs_utils import MoveItConfigsBuilder
 
-moveit_parameters = SourceFileLoader(
+moveit_launch_common = SourceFileLoader(
     "moveit_launch_common",
     os.path.join(os.path.dirname(__file__), "moveit_launch_common.py"),
-).load_module().moveit_parameters
+).load_module()
+moveit_parameters = moveit_launch_common.moveit_parameters
+apply_rviz_urdf_compat = moveit_launch_common.apply_rviz_urdf_compat
 
 
 def generate_launch_description():
@@ -64,9 +66,19 @@ def _launch_setup(context, *args, **kwargs):
             file_path="config/rebotarm_rs.srdf" if is_rs else "config/rebotarm.srdf"
         )
         .robot_description_kinematics(file_path="config/kinematics.yaml")
-        .joint_limits(file_path="config/joint_limits.yaml")
+        .joint_limits(
+            file_path=(
+                "config/joint_limits_rs.yaml"
+                if is_rs
+                else "config/joint_limits.yaml"
+            )
+        )
         .trajectory_execution(
-            file_path="config/moveit_controllers.yaml"
+            file_path=(
+                "config/moveit_controllers_rs.yaml"
+                if is_rs
+                else "config/moveit_controllers.yaml"
+            )
         )
         .planning_scene_monitor(
             publish_robot_description=True,
@@ -75,6 +87,7 @@ def _launch_setup(context, *args, **kwargs):
         .planning_pipelines(pipelines=["ompl"])
         .to_moveit_configs()
     )
+    moveit_config = apply_rviz_urdf_compat(moveit_config)
     moveit_params = moveit_parameters(moveit_config)
 
     move_group_node = Node(
@@ -120,7 +133,7 @@ def _launch_setup(context, *args, **kwargs):
     ros2_controllers_path = os.path.join(
         get_package_share_directory("rebotarm_moveit_config"),
         "config",
-        "ros2_controllers.yaml",
+        "ros2_controllers_rs.yaml" if is_rs else "ros2_controllers.yaml",
     )
     ros2_control_node = Node(
         package="controller_manager",

@@ -12,8 +12,8 @@ from sensor_msgs.msg import JointState
 from std_srvs.srv import Trigger
 
 
-_GRIPPER_COMMAND_OPEN_M = 0.09
-_GRIPPER_VISUAL_OPEN_M = 0.057
+_GRIPPER_COMMAND_OPEN_M = 0.10
+_GRIPPER_VISUAL_OPEN_M = 0.10
 _GRIPPER_HALF_VISUAL_SCALE = _GRIPPER_VISUAL_OPEN_M / (_GRIPPER_COMMAND_OPEN_M * 2.0)
 
 
@@ -29,7 +29,7 @@ class FakeReBotArmDriver(Node):
         self.declare_parameter("joint_state_rate", 100.0)
         self.declare_parameter("max_joint_speed", 1.8)
         self.declare_parameter("max_gripper_speed", 0.08)
-        self.declare_parameter("gripper_open", 0.09)
+        self.declare_parameter("gripper_open", 0.10)
 
         self.namespace = str(self.get_parameter("arm_namespace").value).strip("/")
         self.joint_names = [str(name) for name in self.get_parameter("joint_names").value]

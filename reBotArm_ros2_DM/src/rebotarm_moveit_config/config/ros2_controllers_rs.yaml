@@ -35,5 +35,6 @@ gripper_controller:
       - position
       - velocity
     joints:
-      - finger_left
+      - gripper_joint1
+      - gripper_joint2
     allow_nonzero_velocity_at_trajectory_end: true

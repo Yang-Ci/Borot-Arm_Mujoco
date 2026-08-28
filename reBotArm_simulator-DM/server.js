@@ -148,8 +148,8 @@ function requestHandler(req, res) {
         name: 'gripper',
         motorId: '0x07',
         closedMeters: 0,
-        openMeters: 0.09,
-        visualOpenMeters: 0.057,
+        openMeters: 0.10,
+        visualOpenMeters: 0.10,
         rosService: '/rebotarm/gripper/set'
       }
     });

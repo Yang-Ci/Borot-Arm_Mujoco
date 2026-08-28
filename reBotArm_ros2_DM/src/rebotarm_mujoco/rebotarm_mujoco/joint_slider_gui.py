@@ -30,7 +30,7 @@ SLIDERS = [
     SliderSpec("joint4", "关节4 / 腕部旋转", -1.87, 1.57, 0.0, 0.001, "rad"),
     SliderSpec("joint5", "关节5 / 腕部俯仰", -1.57, 1.57, 0.0, 0.001, "rad"),
     SliderSpec("joint6", "关节6 / 末端旋转", -3.14, 3.14, 0.0, 0.001, "rad"),
-    SliderSpec("finger_left", "夹爪开合", 0.0, 0.0285, 0.0, 0.0005, "m"),
+    SliderSpec("finger_left", "夹爪开合", 0.0, 0.05, 0.0, 0.0005, "m"),
 ]
 
 
@@ -154,10 +154,10 @@ class JointSliderGui(Node):
         ttk.Button(controls, text="夹爪闭合", command=lambda: self.set_gripper(0.0)).grid(
             row=0, column=1, padx=8
         )
-        ttk.Button(controls, text="夹爪半开", command=lambda: self.set_gripper(0.014)).grid(
+        ttk.Button(controls, text="夹爪半开", command=lambda: self.set_gripper(0.025)).grid(
             row=0, column=2, padx=8
         )
-        ttk.Button(controls, text="夹爪全开", command=lambda: self.set_gripper(0.0285)).grid(
+        ttk.Button(controls, text="夹爪全开", command=lambda: self.set_gripper(0.05)).grid(
             row=0, column=3, padx=8
         )
         ttk.Button(controls, text="发布一次", command=self._publish_once).grid(

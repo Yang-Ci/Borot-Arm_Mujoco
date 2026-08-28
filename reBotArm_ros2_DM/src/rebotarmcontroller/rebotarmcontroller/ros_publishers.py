@@ -5,8 +5,8 @@ from rebotarm_msgs.msg import ArmStatus, JointMotorState
 from sensor_msgs.msg import JointState
 
 
-_GRIPPER_COMMAND_OPEN_M = 0.09
-_GRIPPER_VISUAL_OPEN_M = 0.057
+_GRIPPER_COMMAND_OPEN_M = 0.10
+_GRIPPER_VISUAL_OPEN_M = 0.10
 _GRIPPER_HALF_VISUAL_SCALE = _GRIPPER_VISUAL_OPEN_M / (_GRIPPER_COMMAND_OPEN_M * 2.0)
 
 

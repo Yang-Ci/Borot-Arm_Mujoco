@@ -109,7 +109,7 @@
                     <site name="tcp" pos="-0.105 0 0" size="0.008" rgba="1 0.34 0.16 1"/>
 
                     <body name="finger_left_link" pos="0 0 0">
-                      <joint name="finger_left" type="slide" axis="0 1 0" range="0 0.0285"/>
+                      <joint name="finger_left" type="slide" axis="0 1 0" range="0 0.05"/>
                       <inertial pos="0 0 0" mass="0.03" diaginertia="0.00001 0.00001 0.00001"/>
                       <geom name="finger_left_visual" type="mesh" mesh="finger_left_mesh" material="gripper_mat"/>
                       <geom name="finger_left_collision" type="box" pos="-0.105 0.014 0" size="0.045 0.007 0.020" rgba="0.18 0.22 0.21 0.20" contype="1" conaffinity="1" condim="6" mass="0.01" friction="6.0 0.25 0.04" solref="0.003 1" solimp="0.98 0.995 0.0005"/>
@@ -117,7 +117,7 @@
                     </body>
 
                     <body name="finger_right_link" pos="0 0 0">
-                      <joint name="finger_right" type="slide" axis="0 1 0" range="-0.0285 0"/>
+                      <joint name="finger_right" type="slide" axis="0 1 0" range="-0.05 0"/>
                       <inertial pos="0 0 0" mass="0.03" diaginertia="0.00001 0.00001 0.00001"/>
                       <geom name="finger_right_visual" type="mesh" mesh="finger_right_mesh" material="gripper_mat"/>
                       <geom name="finger_right_collision" type="box" pos="-0.105 -0.014 0" size="0.045 0.007 0.020" rgba="0.18 0.22 0.21 0.20" contype="1" conaffinity="1" condim="6" mass="0.01" friction="6.0 0.25 0.04" solref="0.003 1" solimp="0.98 0.995 0.0005"/>

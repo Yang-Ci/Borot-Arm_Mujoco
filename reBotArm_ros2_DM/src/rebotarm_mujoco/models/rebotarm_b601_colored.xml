@@ -66,18 +66,19 @@
     <mesh name="finger_right_mid_collision_mesh" file="right_finger_mid.stl"/>
     <mesh name="finger_right_rear_collision_mesh" file="right_finger_rear.stl"/>
 
-    <material name="anodized_grey_mat" rgba="0.720 0.760 0.730 1" specular="0.72" shininess="0.90" metallic="0.88" roughness="0.18"/>
-    <material name="hardware_black_mat" rgba="0.055 0.065 0.060 1" specular="0.50" shininess="0.72" metallic="0.82" roughness="0.20"/>
-    <material name="matte_black_mat" rgba="0.14 0.16 0.15 1" specular="0.42" shininess="0.48" metallic="0.48" roughness="0.48"/>
-    <material name="seeed_yellow_mat" rgba="0.73 0.84 0.12 1" specular="0.22" shininess="0.26" metallic="0.18" roughness="0.34"/>
-    <material name="silver_trim_mat" rgba="0.72 0.76 0.73 1" specular="0.72" shininess="0.90" metallic="0.88" roughness="0.18"/>
+    <!-- Robot RGBA and visual assignments are loaded from ReBot_Arm_DM.urdf. -->
+    <material name="anodized_grey_mat" specular="0.72" shininess="0.90" metallic="0.88" roughness="0.18"/>
+    <material name="hardware_black_mat" specular="0.50" shininess="0.72" metallic="0.82" roughness="0.20"/>
+    <material name="matte_black_mat" specular="0.42" shininess="0.48" metallic="0.48" roughness="0.48"/>
+    <material name="seeed_yellow_mat" specular="0.22" shininess="0.26" metallic="0.18" roughness="0.34"/>
+    <material name="silver_trim_mat" specular="0.72" shininess="0.90" metallic="0.88" roughness="0.18"/>
     <material name="gripper_grey_mat" rgba="0.30 0.34 0.33 1" specular="0.30" shininess="0.30" metallic="0.62" roughness="0.38"/>
-    <material name="gripper_finger_black_mat" rgba="0.090 0.106 0.102 1" specular="0.42" shininess="0.48" metallic="0.48" roughness="0.48"/>
-    <material name="gripper_carriage_grey_mat" rgba="0.239 0.278 0.271 1" specular="0.30" shininess="0.30" metallic="0.62" roughness="0.38"/>
-    <material name="gripper_rack_metal_mat" rgba="0.682 0.710 0.694 1" specular="0.72" shininess="0.90" metallic="0.88" roughness="0.18"/>
-    <material name="gripper_seeed_yellow_mat" rgba="0.725 0.835 0.118 1" specular="0.22" shininess="0.26" metallic="0.18" roughness="0.34"/>
-    <material name="gripper_hardware_black_mat" rgba="0.063 0.071 0.067 1" specular="0.50" shininess="0.72" metallic="0.82" roughness="0.20"/>
-    <material name="gripper_base_metal_mat" rgba="0.720 0.760 0.730 1" specular="0.72" shininess="0.90" metallic="0.88" roughness="0.18"/>
+    <material name="gripper_finger_black_mat" specular="0.42" shininess="0.48" metallic="0.48" roughness="0.48"/>
+    <material name="gripper_carriage_grey_mat" specular="0.30" shininess="0.30" metallic="0.62" roughness="0.38"/>
+    <material name="gripper_rack_metal_mat" specular="0.72" shininess="0.90" metallic="0.88" roughness="0.18"/>
+    <material name="gripper_seeed_yellow_mat" specular="0.22" shininess="0.26" metallic="0.18" roughness="0.34"/>
+    <material name="gripper_hardware_black_mat" specular="0.50" shininess="0.72" metallic="0.82" roughness="0.20"/>
+    <material name="gripper_base_metal_mat" specular="0.72" shininess="0.90" metallic="0.88" roughness="0.18"/>
     <material name="tcp_mat" rgba="1.00 0.34 0.16 1"/>
     <texture name="floor_checker" type="2d" builtin="checker" rgb1="0.26 0.45 0.58" rgb2="0.12 0.30 0.43" width="512" height="512"/>
     <material name="floor_mat" texture="floor_checker" texrepeat="8 8" texuniform="true" reflectance="0.2"/>
@@ -182,7 +183,7 @@
                     <site name="tcp" pos="-0.105 0 0" size="0.008" rgba="1 0.34 0.16 1"/>
 
                     <body name="finger_left_link" pos="0 0 0">
-                      <joint name="finger_left" type="slide" axis="0 1 0" range="0 0.0285"/>
+                      <joint name="finger_left" type="slide" axis="0 1 0" range="0 0.05"/>
                       <inertial pos="0 0 0" mass="0.03" diaginertia="0.00001 0.00001 0.00001"/>
                       <geom name="finger_left_body_visual" type="mesh" mesh="finger_left_body_mesh" material="gripper_finger_black_mat"/>
                       <geom name="finger_left_carriage_visual" type="mesh" mesh="finger_left_carriage_mesh" material="gripper_carriage_grey_mat"/>
@@ -196,7 +197,7 @@
                     </body>
 
                     <body name="finger_right_link" pos="0 0 0">
-                      <joint name="finger_right" type="slide" axis="0 1 0" range="-0.0285 0"/>
+                      <joint name="finger_right" type="slide" axis="0 1 0" range="-0.05 0"/>
                       <inertial pos="0 0 0" mass="0.03" diaginertia="0.00001 0.00001 0.00001"/>
                       <geom name="finger_right_body_visual" type="mesh" mesh="finger_right_body_mesh" material="gripper_finger_black_mat"/>
                       <geom name="finger_right_carriage_visual" type="mesh" mesh="finger_right_carriage_mesh" material="gripper_carriage_grey_mat"/>

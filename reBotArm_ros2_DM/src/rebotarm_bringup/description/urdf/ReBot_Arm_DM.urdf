@@ -1,22 +1,37 @@
 <?xml version='1.0' encoding='utf-8'?>
 <robot name="ReBot_Arm_DM">
   <material name="gripper_finger_black">
-    <color rgba="0.090 0.106 0.102 1" />
+    <color rgba="0.066667 0.074510 0.070588 1" />
   </material>
   <material name="gripper_carriage_grey">
     <color rgba="0.239 0.278 0.271 1" />
   </material>
   <material name="gripper_rack_metal">
-    <color rgba="0.682 0.710 0.694 1" />
+    <color rgba="0.831373 0.847059 0.831373 1" />
   </material>
   <material name="gripper_seeed_yellow">
     <color rgba="0.725 0.835 0.118 1" />
   </material>
   <material name="gripper_hardware_black">
-    <color rgba="0.063 0.071 0.067 1" />
+    <color rgba="0.019608 0.027451 0.023529 1" />
   </material>
   <material name="gripper_base_metal">
-    <color rgba="0.720 0.760 0.730 1" />
+    <color rgba="0.831373 0.847059 0.831373 1" />
+  </material>
+  <material name="anodized_grey">
+    <color rgba="0.831373 0.847059 0.831373 1" />
+  </material>
+  <material name="silver_trim">
+    <color rgba="0.878431 0.890196 0.874510 1" />
+  </material>
+  <material name="seeed_yellow">
+    <color rgba="0.73 0.84 0.12 1" />
+  </material>
+  <material name="matte_black">
+    <color rgba="0.066667 0.074510 0.070588 1" />
+  </material>
+  <material name="hardware_black">
+    <color rgba="0.019608 0.027451 0.023529 1" />
   </material>
   <link name="base_link">
     <inertial>
@@ -393,7 +408,7 @@
     <parent link="end_link" />
     <child link="finger_left_link" />
     <axis xyz="0 1 0" />
-    <limit lower="0" upper="0.0285" effort="8" velocity="0.08" />
+    <limit lower="0" upper="0.05" effort="8" velocity="0.08" />
   </joint>
   <link name="finger_right_link">
     <visual name="finger_right_body">
@@ -436,22 +451,7 @@
     <parent link="end_link" />
     <child link="finger_right_link" />
     <axis xyz="0 1 0" />
-    <limit lower="-0.0285" upper="0" effort="8" velocity="0.08" />
+    <limit lower="-0.05" upper="0" effort="8" velocity="0.08" />
     <mimic joint="finger_left" multiplier="-1" offset="0" />
   </joint>
-  <material name="anodized_grey">
-    <color rgba="0.720 0.760 0.730 1" />
-  </material>
-  <material name="silver_trim">
-    <color rgba="0.72 0.76 0.73 1" />
-  </material>
-  <material name="seeed_yellow">
-    <color rgba="0.73 0.84 0.12 1" />
-  </material>
-  <material name="matte_black">
-    <color rgba="0.14 0.16 0.15 1" />
-  </material>
-  <material name="hardware_black">
-    <color rgba="0.055 0.065 0.060 1" />
-  </material>
 </robot>

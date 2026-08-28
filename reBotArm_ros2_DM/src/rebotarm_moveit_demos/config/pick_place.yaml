@@ -24,10 +24,9 @@ pick_place:
     gripper_action_name: /gripper_controller/follow_joint_trajectory
     hardware_gripper_action_name: /rebotarm/gripper/command
     gripper_joint_names:
-      - gripper_joint1
-      - gripper_joint2
-    max_gripper_width: 0.09
-    open_gripper_position: 0.045
+      - finger_left
+    max_gripper_width: 0.10
+    open_gripper_position: 0.05
     grasp_gripper_position: 0.017
     closed_gripper_position: 0.0
     hardware_open_gripper_position: -5.0
@@ -43,7 +42,7 @@ pick_place:
     object_dimensions: [0.03, 0.03, 0.06]
     attached_link_name: gripper_tcp
     touch_links:
-      - gripper_link
+      - end_link
       - gripper_tcp
-      - gripper_left
-      - gripper_right
+      - finger_left_link
+      - finger_right_link

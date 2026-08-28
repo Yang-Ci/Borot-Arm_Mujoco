@@ -5,5 +5,8 @@ initial_positions:
   joint4: 0.0
   joint5: 0.0
   joint6: 0.0
+  finger_left: 0.0
+  finger_right: 0.0
+  # RS retains two independently commanded gripper joints.
   gripper_joint1: 0.0
   gripper_joint2: 0.0

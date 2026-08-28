@@ -33,11 +33,11 @@ else:
 
 
 _ARM_JOINTS = ("joint1", "joint2", "joint3", "joint4", "joint5", "joint6")
-_GRIPPER_OPEN_MM = 90.0
+_GRIPPER_OPEN_MM = 100.0
 _GRIPPER_CLOSE_MM = 0.0
 _GRIPPER_BASE_GAP_M = 0.0
-_GRIPPER_VISUAL_TRAVEL_M = 0.057
-_GRIPPER_EFFECTIVE_GAP_M = 0.057
+_GRIPPER_VISUAL_TRAVEL_M = 0.10
+_GRIPPER_EFFECTIVE_GAP_M = 0.10
 _GRIPPER_MIN_OBJECT_GRASP_M = 0.018
 _GRIPPER_SQUEEZE_M = 0.004
 _GRIPPER_RELEASE_ANIMATION_MM = 70.0
@@ -1364,7 +1364,7 @@ def gravity_compensation_stop() -> dict[str, Any]:
 
 @mcp.tool()
 def set_gripper_opening_mm(opening_mm: float, max_effort: float = 0.0) -> dict[str, Any]:
-    """Command the gripper opening in millimeters from 0 closed to 90 open. Requires motion_mode=allow."""
+    """Command the gripper opening in millimeters from 0 closed to 100 open. Requires motion_mode=allow."""
     return _require_bridge().set_gripper_opening_mm(opening_mm, max_effort)
 
 

@@ -135,7 +135,7 @@ you connect it to an LLM or voice frontend:
 Check whether ROS is ready.
 Is the arm enabled?
 Can the arm reach x 0.32, y 0.00, z 0.25?
-Open the gripper to 90 mm.
+Open the gripper to 100 mm.
 Pick the red block in simulation.
 Start recording this demonstration.
 Replay the last recorded trajectory.
@@ -253,7 +253,7 @@ Useful prompts:
 先诊断 ROS 状态。
 现在能看到哪些颜色块？
 抓取红色方块。
-把夹爪打开到 90 毫米。
+把夹爪打开到 100 毫米。
 回到安全位置。
 ```
 
@@ -267,7 +267,7 @@ Local commands that do not call the LLM:
 /detect
 /detect red
 /pick red
-/gripper 90
+/gripper 100
 ```
 
 If natural-language prompts fail with `Temporary failure in name resolution`,

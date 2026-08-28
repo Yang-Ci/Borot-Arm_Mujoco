@@ -1,12 +1,11 @@
 <?xml version="1.0"?>
-<robot name="reBot_B601_DM_with_gripper">
+<robot name="ReBot_Arm_DM">
   <group name="arm">
     <chain base_link="base_link" tip_link="gripper_tcp"/>
   </group>
 
   <group name="gripper">
-    <joint name="gripper_joint1"/>
-    <joint name="gripper_joint2"/>
+    <joint name="finger_left"/>
   </group>
 
   <group_state name="home" group="arm">
@@ -19,16 +18,14 @@
   </group_state>
 
   <group_state name="open" group="gripper">
-    <joint name="gripper_joint1" value="0.0715"/>
-    <joint name="gripper_joint2" value="0.0715"/>
+    <joint name="finger_left" value="0.05"/>
   </group_state>
 
   <group_state name="closed" group="gripper">
-    <joint name="gripper_joint1" value="0.0"/>
-    <joint name="gripper_joint2" value="0.0"/>
+    <joint name="finger_left" value="0.0"/>
   </group_state>
 
-  <end_effector name="gripper" parent_link="gripper_link" group="gripper" parent_group="arm"/>
+  <end_effector name="gripper" parent_link="end_link" group="gripper" parent_group="arm"/>
 
   <virtual_joint name="FixedBase" type="fixed" parent_frame="world" child_link="base_link"/>
 
@@ -38,11 +35,11 @@
   <disable_collisions link1="link3" link2="link4" reason="Adjacent"/>
   <disable_collisions link1="link4" link2="link5" reason="Adjacent"/>
   <disable_collisions link1="link5" link2="link6" reason="Adjacent"/>
-  <disable_collisions link1="link6" link2="gripper_link" reason="Adjacent"/>
-  <disable_collisions link1="gripper_link" link2="gripper_left" reason="Adjacent"/>
-  <disable_collisions link1="gripper_link" link2="gripper_right" reason="Adjacent"/>
-  <disable_collisions link1="gripper_link" link2="gripper_tcp" reason="Adjacent"/>
-  <disable_collisions link1="gripper_left" link2="gripper_tcp" reason="Never"/>
-  <disable_collisions link1="gripper_right" link2="gripper_tcp" reason="Never"/>
-  <disable_collisions link1="gripper_left" link2="gripper_right" reason="Never"/>
+  <disable_collisions link1="link6" link2="end_link" reason="Adjacent"/>
+  <disable_collisions link1="end_link" link2="finger_left_link" reason="Adjacent"/>
+  <disable_collisions link1="end_link" link2="finger_right_link" reason="Adjacent"/>
+  <disable_collisions link1="end_link" link2="gripper_tcp" reason="Adjacent"/>
+  <disable_collisions link1="finger_left_link" link2="gripper_tcp" reason="Never"/>
+  <disable_collisions link1="finger_right_link" link2="gripper_tcp" reason="Never"/>
+  <disable_collisions link1="finger_left_link" link2="finger_right_link" reason="Never"/>
 </robot>
